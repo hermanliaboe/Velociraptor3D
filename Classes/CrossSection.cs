@@ -12,6 +12,7 @@ namespace FEM.Classes
         public double Width;
         public double YoungsMod;
         public double Rho;
+        public double ShearMod;
 
         public CrossSection() { }
 

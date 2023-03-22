@@ -16,17 +16,24 @@ namespace FEM.Classes
         public Point3d Point;
         public bool XBC;
         public bool ZBC;
+        public bool YBC;
         public bool RyBC;
+        public bool RzBC;
+        public bool RxBC;
 
 
-        public Node(int localID, Point3d point, int globalID, bool xBC, bool zBC, bool ry) 
+        public Node(int localID, Point3d point, int globalID, bool xBC, bool zBC, bool yBC, bool ryBC, bool rzBC, bool rxBC) 
         {
             this.LocalID = localID;
             this.Point = point;
             this.GlobalID = globalID;
             this.XBC = xBC;
             this.ZBC = zBC;
-            this.RyBC = ry;
+            this.YBC = yBC;
+            this.RyBC = ryBC;
+            this.RzBC = rzBC;
+            this.RxBC = rxBC;
+            
         }
         public Node(int localID, int globalID, Point3d point)
         {
