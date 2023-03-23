@@ -39,9 +39,13 @@ namespace FEM.Classes
 
             foreach (Load load in loads)
             {
-                forceVec[load.NodeID * 3, 0] = load.ForceVector.X;
-                forceVec[load.NodeID * 3 + 1, 0] = load.ForceVector.Z;
-                forceVec[load.NodeID * 3 + 2, 0] = load.MomentVector.Y;
+                forceVec[load.NodeID * 6, 0] = load.ForceVector.X;
+                forceVec[load.NodeID * 6 + 1, 0] = load.ForceVector.Y;
+                forceVec[load.NodeID * 6 + 2, 0] = load.ForceVector.Z;
+                forceVec[load.NodeID * 6 + 3, 0] = load.MomentVector.X;
+                forceVec[load.NodeID * 6 + 4, 0] = load.MomentVector.Y;
+                forceVec[load.NodeID * 6 + 5, 0] = load.MomentVector.Z;
+
             }
 
             return forceVec;
@@ -56,7 +60,7 @@ namespace FEM.Classes
 
             foreach (var element in elements)
             {
-                int nDof = 3;
+                int nDof = element.Dof;
                 //Retrive element k from function
                 LA.Matrix<double> ke = GetKel(element);
 
@@ -92,17 +96,19 @@ namespace FEM.Classes
         // Creates k matrix element level #########################################################################
         public LA.Matrix<double> GetKel(BeamElement beam)
         {
-            int dof = 6;  //how many dof per element
+            int dof = beam.Dof;  //how many dof per element
 
 
             //gets length of element
             Node startNode = beam.StartNode;
             double z1 = startNode.Point.Z;
             double x1 = startNode.Point.X;
+            double y1 = startNode.Point.Y;
 
             Node endNode = beam.EndNode;
             double z2 = endNode.Point.Z;
             double x2 = endNode.Point.X;
+            double y2 = endNode.Point.Y;
 
             double l = beam.Length;
 
@@ -110,25 +116,40 @@ namespace FEM.Classes
             LA.Matrix<double> kEl = LA.Matrix<double>.Build.Dense(dof, dof, 0);
 
             double E = beam.YoungsMod;
+            double G = beam.ShearMod;
             double h = beam.Height;
             double w = beam.Width;
             double A = h * w;
-            double I = (1.0 / 12.0) * Math.Pow(h, 3.0) * w;
+            double Iy = (1.0 / 12.0) * Math.Pow(h, 3.0) * w;
+            double Iz = (1.0 / 12.0) * Math.Pow(w, 3.0) * h;
+            double J = (w * h * (Math.Pow(w, 2.0) + Math.Pow(h, 2.0))) / 12.0; //Polar area moment of inertia
 
-            double ealA = (E * A) / l;
-            double eilB = 12.0 * (E * I) / Math.Pow(l, 3.0);
-            double eilC = 6.0 * (E * I) / Math.Pow(l, 2.0);
-            double eilD = 4.0 * (E * I) / l;
-            double eilE = 2.0 * (E * I) / l;
+            double k1 = (E * A) / l;
+            double k2 = 12.0 * (E * Iz) / Math.Pow(l, 3.0);
+            double k3 = 6.0 * (E * Iz) / Math.Pow(l, 2.0);
+            double k4 = 4.0 * (E * Iz) / l;
+            double k5 = 2.0 * (E * Iz) / l;
+            double k6 = 12.0 * (E * Iy) / Math.Pow(l, 3.0);
+            double k7 = 6.0 * (E * Iy) / Math.Pow(l, 2.0);
+            double k8 = 4.0 * (E * Iy) / l;
+            double k9 = 2.0 * (E * Iy) / l;
+            double k10 = (G * J) / l;
 
 
-
-            kEl[0, 0] = ealA; kEl[0, 1] = 0;    kEl[0, 2] = 0;     kEl[0, 3] = -ealA; kEl[0, 4] = 0;     kEl[0, 5] = 0;
-            kEl[1, 0] = 0;    kEl[1, 1] = eilB; kEl[1, 2] = -eilC; kEl[1, 3] = 0;     kEl[1, 4] = -eilB; kEl[1, 5] = -eilC;
-            kEl[2, 0] = 0;    kEl[2, 1] = -eilC;kEl[2, 2] = eilD;  kEl[2, 3] = 0;     kEl[2, 4] = eilC;  kEl[2, 5] = eilE;
-            kEl[3, 0] = -ealA;kEl[3, 1] = 0;    kEl[3, 2] = 0;     kEl[3, 3] = ealA;  kEl[3, 4] = 0;     kEl[3, 5] = 0;
-            kEl[4, 0] = 0;    kEl[4, 1] = -eilB;kEl[4, 2] = eilC;  kEl[4, 3] = 0;     kEl[4, 4] = eilB;  kEl[4, 5] = eilC;
-            kEl[5, 0] = 0;    kEl[5, 1] = -eilC;kEl[5, 2] = eilE;  kEl[5, 3] = 0;     kEl[5, 4] = eilC;  kEl[5, 5] = eilD;
+            kEl[0, 0] = kEl[6, 6] = k1;
+            kEl[6, 0] = kEl[0, 6] = -k1;
+            kEl[1, 1] = kEl[7, 7] = k2;
+            kEl[1, 7] = kEl[7, 1] = -k2;
+            kEl[1, 5] = kEl[5, 1] = kEl[1, 11] = kEl[11, 1] = k3;
+            kEl[5, 7] = kEl[7, 5] = kEl[7, 11] = kEl[11, 7] = -k3;
+            kEl[5, 5] = kEl[11, 11] = k4;
+            kEl[5, 11] = kEl[11, 5] = k5;
+            kEl[2, 2] = kEl[8, 8] = k6;
+            kEl[2, 8] = kEl[8, 2] = -k6;
+            kEl[4, 8] = kEl[8, 4] = kEl[8, 10] = kEl[10, 8] = k7;
+            kEl[2, 4] = kEl[4, 2] = kEl[2, 10] = kEl[10, 2] = -k7;
+            kEl[4, 4] = kEl[10, 10] = k8;
+            kEl[4, 10] = kEl[10, 4] = k9;
 
 
             //Creates T-matrix to adjust element to global axis

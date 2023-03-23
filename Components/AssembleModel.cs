@@ -80,7 +80,7 @@ namespace FEM.Components
                     if (endNode.Point == sup.Point)
                     {
                         endNode.XBC = sup.Tx;
-                        endNode.ZBC = sup.Tz    ;
+                        endNode.ZBC = sup.Tz;
                         endNode.RyBC = sup.Ry;
                     }
                 }                    

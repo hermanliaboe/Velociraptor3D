@@ -105,7 +105,7 @@ namespace FEM.Components
                 dispList.Add(nodeDisp);
             }
 
-            List<double> dispNode = new List<Double>();
+            List<double> dispNode = new List<double>();
             for (int i = 0; i < dof; i = i + 3)
             {
                 var nodeDisp =  displacements[i + 1, 0];

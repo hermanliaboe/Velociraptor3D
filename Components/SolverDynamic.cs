@@ -80,7 +80,7 @@ namespace FEM.Components
             List<BeamElement> elements = model.BeamList;
             List<Support> supports = model.SupportList;
             List<Node> nodes = model.NodeList;
-            int dof = nodes.Count * 3;
+            int dof = nodes.Count * 6;
 
             //Creation of matrices
             Matrices matrices = new Matrices();
