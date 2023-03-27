@@ -11,7 +11,7 @@ namespace FEM.Classes
     {
         public string Type;
         public int Id;
-        public int Dof;
+        public int ElDof;
         public List<Node> Nodes;
         public Node StartNode;
         public Node EndNode;

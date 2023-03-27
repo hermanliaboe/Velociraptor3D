@@ -18,7 +18,6 @@ namespace FEM.Classes
         public LA.Matrix<double> GlobalK;
         public LA.Matrix<double> GlobalM;
         public LA.Matrix<double> GlobalC;
-        public LA.Matrix<double> GlobalN;
         public LA.Matrix<double> GlobalF;
 
         public Matrices(int dof, List<BeamElement> elements)
@@ -60,7 +59,7 @@ namespace FEM.Classes
 
             foreach (var element in elements)
             {
-                int nDof = element.Dof;
+                int nDof = element.ElDof/12;
                 //Retrive element k from function
                 LA.Matrix<double> ke = GetKel(element);
 
@@ -96,9 +95,9 @@ namespace FEM.Classes
         // Creates k matrix element level #########################################################################
         public LA.Matrix<double> GetKel(BeamElement beam)
         {
-            int dof = beam.Dof;  //how many dof per element
+            int dof = beam.ElDof;  //how many dof per element
 
-
+            
             //gets length of element
             Node startNode = beam.StartNode;
             double z1 = startNode.Point.Z;
@@ -121,7 +120,7 @@ namespace FEM.Classes
             double w = beam.Width;
             double A = h * w;
             double Iy = (1.0 / 12.0) * Math.Pow(h, 3.0) * w;
-            double Iz = (1.0 / 12.0) * Math.Pow(w, 3.0) * h;
+            double Iz = (1.0 / 12.0) * Math.Pow(w, 3.0) * h;  
             double J = (w * h * (Math.Pow(w, 2.0) + Math.Pow(h, 2.0))) / 12.0; //Polar area moment of inertia
 
             double k1 = (E * A) / l;
@@ -153,11 +152,11 @@ namespace FEM.Classes
 
 
             //Creates T-matrix to adjust element to global axis
-            LA.Matrix<double> kT = TransformMatrix(kEl, x1, x2, z1, z2, l);
+            LA.Matrix<double> kT = TransformMatrix(kEl, x1, x2, y1, y2, z1, z2, l);
             return kT;
         }
 
-        public LA.Matrix<double> TransformMatrix(LA.Matrix<double> matrix, double x1, double x2, double z1, double z2, double l)
+        public LA.Matrix<double> TransformMatrix(LA.Matrix<double> matrix, double x1, double x2, double y1, double y2, double z1, double z2, double l)
         {
             LA.Matrix<double> t = LA.Matrix<double>.Build.Dense(matrix.RowCount, matrix.ColumnCount, 0);
 
@@ -226,10 +225,12 @@ namespace FEM.Classes
             Node startNode = beam.StartNode;
             double z1 = startNode.Point.Z;
             double x1 = startNode.Point.X;
+            double y1 = startNode.Point.Y;
 
             Node endNode = beam.EndNode;
             double z2 = endNode.Point.Z;
             double x2 = endNode.Point.X;
+            double y2 = endNode.Point.Y;
             double l = beam.Length;
             double mTot = beam.Height * beam.Width * beam.Rho * beam.Length;
 

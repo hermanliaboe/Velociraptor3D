@@ -26,6 +26,7 @@ namespace FEM.Components
         {
             pManager.AddLineParameter("Lines", "ls", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("CrossSection", "cs","",GH_ParamAccess.item) ;
+            pManager.AddBooleanParameter("3D", "3D", "if True 3D 12DOF element, if False 2D 6DOF element", GH_ParamAccess.item, true);
         }
 
         /// <summary>
@@ -45,8 +46,10 @@ namespace FEM.Components
         {
             List <Line> lines = new List<Line>();
             CrossSection cs = new CrossSection();
+            bool dof = true;
             DA.GetDataList(0, lines);
             DA.GetData(1, ref cs);
+            DA.GetData(2, ref dof);
 
             List<BeamElement> beams = new List<BeamElement>();
             Dictionary<Point3d, Node> existingNodes = new Dictionary<Point3d, Node>();
@@ -88,8 +91,8 @@ namespace FEM.Components
                 element.Width = cs.Width;
                 element.YoungsMod = cs.YoungsMod;
                 element.Rho = cs.Rho;
-                double l = 0;
-
+                if (dof) { element.ElDof = 12;}
+                else { element.ElDof = 6;}
                 beams.Add(element);
             }
 
