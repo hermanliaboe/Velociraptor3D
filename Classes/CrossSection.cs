@@ -16,12 +16,13 @@ namespace FEM.Classes
 
         public CrossSection() { }
 
-        public CrossSection(double height, double width, double youngsMod, double rho)
+        public CrossSection(double height, double width, double youngsMod, double rho, double shearMod)
         {
             this.Height = height;
             this.Width = width;
             this.YoungsMod = youngsMod;
             this.Rho = rho;
+            this.ShearMod = shearMod;
         }
     }
 }

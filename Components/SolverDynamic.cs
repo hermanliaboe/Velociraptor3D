@@ -163,6 +163,7 @@ namespace FEM.Components
 
             d.SetSubMatrix(0,dof, 0, 1, d0);
             v.SetSubMatrix(0, dof, 0, 1 , v0);
+           
             fTime.SetSubMatrix(0, dof, 0, 1 , f0);
 
 

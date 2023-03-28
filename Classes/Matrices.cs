@@ -8,6 +8,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 using LA = MathNet.Numerics.LinearAlgebra;
 
@@ -173,6 +174,7 @@ namespace FEM.Classes
             LA.Matrix<double> tT = t.Transpose();
             LA.Matrix<double> tm = tT.Multiply(matrix);
             LA.Matrix<double> tmt = tm.Multiply(t);
+            
             return tmt;
 
         }
@@ -181,6 +183,7 @@ namespace FEM.Classes
         public LA.Matrix<double> BuildGlobalKsup(int dof, LA.Matrix<double> globalK, List<Support> supports, List<Node> nodes)
         {
             LA.Matrix<double> globalKsup = globalK.Clone();
+            
             foreach (Support support in supports)
             {
                 foreach (Node node in nodes)
@@ -195,21 +198,39 @@ namespace FEM.Classes
                         
                         if (support.Tx == true)
                         {
-                            globalKsup.SetSubMatrix(idN*3, 0, row);
-                            globalKsup.SetSubMatrix(0, idN*3, col);
-                            globalKsup[idN*3, idN*3] = 1;
+                            globalKsup.SetSubMatrix(idN*6, 0, row);
+                            globalKsup.SetSubMatrix(0, idN*6, col);
+                            globalKsup[idN*6, idN*6] = 1;
+                        }
+                        if (support.Ty == true)
+                        {
+                            globalKsup.SetSubMatrix(idN * 6 + 1, 0, row);
+                            globalKsup.SetSubMatrix(0, idN * 6 + 1 , col);
+                            globalKsup[idN * 3 + 1, idN * 6 + 1] = 1;
                         }
                         if (support.Tz == true)
                         {
-                            globalKsup.SetSubMatrix(idN * 3 + 1, 0, row);
-                            globalKsup.SetSubMatrix(0, idN * 3 + 1 , col);
-                            globalKsup[idN * 3 + 1, idN * 3 + 1] = 1;
+                            globalKsup.SetSubMatrix(idN*6 +2, 0, row);
+                            globalKsup.SetSubMatrix(0, idN*6 +2, col);
+                            globalKsup[idN*6 +2, idN*6 +2] = 1;
+                        }
+                        if (support.Rx == true)
+                        {
+                            globalKsup.SetSubMatrix(idN * 6 + 3, 0, row);
+                            globalKsup.SetSubMatrix(0, idN * 6 + 3, col);
+                            globalKsup[idN * 6 + 3, idN * 6 + 3] = 1;
                         }
                         if (support.Ry == true)
                         {
-                            globalKsup.SetSubMatrix(idN*3 +2, 0, row);
-                            globalKsup.SetSubMatrix(0, idN*3 +2, col);
-                            globalKsup[idN*3 +2, idN*3 +2] = 1;
+                            globalKsup.SetSubMatrix(idN * 6 + 4, 0, row);
+                            globalKsup.SetSubMatrix(0, idN * 6 + 4, col);
+                            globalKsup[idN * 3 + 4, idN * 6 + 4] = 1;
+                        }
+                        if (support.Rz == true)
+                        {
+                            globalKsup.SetSubMatrix(idN * 6 + 5, 0, row);
+                            globalKsup.SetSubMatrix(0, idN * 6 + 5, col);
+                            globalKsup[idN * 6 + 5, idN * 6 + 5] = 1;
                         }
                     }
                 }
@@ -233,22 +254,30 @@ namespace FEM.Classes
             double y2 = endNode.Point.Y;
             double l = beam.Length;
             double mTot = beam.Height * beam.Width * beam.Rho * beam.Length;
+            double m = beam.Height * beam.Width * beam.Rho;
+            double A = beam.Height * beam.Width;
+            double Ix = (1 / 12.0) * m * (Math.Pow(beam.Height, 2.0) + Math.Pow(beam.Width, 2.0));
+            double rx2 = Ix / A;
+            double a = l / 2.0;
+
 
             // mass element matrix of right size filled with zeros
             LA.Matrix<double> mEl = LA.Matrix<double>.Build.Dense(dof, dof, 0);
 
-            mEl[0, 0] = mEl[3,3] = 140;
-            mEl[0, 3] = mEl[3, 0] = 70;
-            mEl[1, 1] = mEl[4, 4] = 156;
-            mEl[1, 2] = mEl[2, 1] = 22 * l;
-            mEl[1, 4] = mEl[4, 1] = 54;
-            mEl[1, 5] = mEl[5, 1] = -13 * l;
-            mEl[2, 2] = mEl[5, 5] = 4*Math.Pow(l, 2);
-            mEl[2, 4] = mEl[4, 2] = 13 * l;
-            mEl[2, 5] = mEl[5, 2] = -3 * Math.Pow(l, 2);
-            mEl[4, 5] = mEl[5, 4] = -22 * l;
+            mEl[0, 0] = mEl[6,6] = 70.0;
+            mEl[0, 6] = mEl[6, 0] = 35.0;
+            mEl[1, 1] = mEl[2, 2] = mEl[7, 7] = mEl[8, 8] = 78.0;
+            mEl[1, 5] = mEl[8, 10] = mEl[10, 8] = mEl[5, 1] = 22.0 * a;
+            mEl[1, 7] = mEl[7, 1] = mEl[2, 8] = mEl[8, 2] = 27.0;
+            mEl[1, 11] = mEl[11, 1] = mEl[4, 8] = mEl[8, 4] = -13.0 * a;
+            mEl[2, 10] = mEl[10, 2] = mEl[5, 7] = mEl[7, 5] = 13.0 * a;
+            mEl[3, 3] = mEl[9, 9] = 70.0 * rx2;
+            mEl[3, 9] = mEl[9, 3] = -35.0 * rx2;
+            mEl[4, 4] = mEl[5, 5] = mEl[10, 10] = mEl[11, 11] = 8.0 * Math.Pow(a, 2.0);
+            mEl[4, 10] = mEl[10, 4] = mEl[5, 11] = mEl[11, 5] = -6.0 * Math.Pow(a, 2.0);
+            mEl[7, 11] = mEl[11, 7] = mEl[2, 4] = mEl[4, 2] = -22.0 * a;
 
-            mEl *= (mTot / 420);
+            mEl *= ((m * a) / 105.0);
 
 
             if (lumped==true) 
@@ -262,7 +291,7 @@ namespace FEM.Classes
             }
 
             //Transform to global coordinates
-            LA.Matrix<double> mT = TransformMatrix(mEl, x1, x2, z1, z2, l);
+            LA.Matrix<double> mT = TransformMatrix(mEl, x1, x2, y1, y2, z1, z2, l);
 
             return mT;
         }
@@ -274,7 +303,7 @@ namespace FEM.Classes
 
             foreach (var element in elements)
             {
-                int nDof = 3; //dof per node
+                int nDof = element.ElDof/2; //dof per node
                 //Retrive element k from function
                 LA.Matrix<double> me = GetMel(element, lumped);
 
@@ -306,6 +335,7 @@ namespace FEM.Classes
         public LA.Matrix<double> BuildSupMat(int dof, LA.Matrix<double> globalM, List<Support> supports, List<Node> nodes)
         {
             LA.Matrix<double> supMatrix = globalM.Clone();
+
             foreach (Support support in supports)
             {
                 foreach (Node node in nodes)
@@ -317,24 +347,41 @@ namespace FEM.Classes
                         LA.Matrix<double> row = LA.Matrix<double>.Build.Dense(1, dof, 0);
                         int idN = node.GlobalID;
 
-
                         if (support.Tx == true)
                         {
-                            supMatrix.SetSubMatrix(idN * 3, 0, row);
-                            supMatrix.SetSubMatrix(0, idN * 3, col);
-                            supMatrix[idN * 3, idN * 3] = 1;
+                            supMatrix.SetSubMatrix(idN * 6, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 6, col);
+                            supMatrix[idN * 6, idN * 6] = 1;
+                        }
+                        if (support.Ty == true)
+                        {
+                            supMatrix.SetSubMatrix(idN * 6 + 1, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 6 + 1, col);
+                            supMatrix[idN * 3 + 1, idN * 6 + 1] = 1;
                         }
                         if (support.Tz == true)
                         {
-                            supMatrix.SetSubMatrix(idN * 3 + 1, 0, row);
-                            supMatrix.SetSubMatrix(0, idN * 3 + 1, col);
-                            supMatrix[idN * 3 + 1, idN * 3 + 1] = 1;
+                            supMatrix.SetSubMatrix(idN * 6 + 2, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 6 + 2, col);
+                            supMatrix[idN * 6 + 2, idN * 6 + 2] = 1;
+                        }
+                        if (support.Rx == true)
+                        {
+                            supMatrix.SetSubMatrix(idN * 6 + 3, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 6 + 3, col);
+                            supMatrix[idN * 6 + 3, idN * 6 + 3] = 1;
                         }
                         if (support.Ry == true)
                         {
-                            supMatrix.SetSubMatrix(idN * 3 + 2, 0, row);
-                            supMatrix.SetSubMatrix(0, idN * 3 + 2, col);
-                            supMatrix[idN * 3 + 2, idN * 3 + 2] = 1;
+                            supMatrix.SetSubMatrix(idN * 6 + 4, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 6 + 4, col);
+                            supMatrix[idN * 3 + 4, idN * 6 + 4] = 1;
+                        }
+                        if (support.Rz == true)
+                        {
+                            supMatrix.SetSubMatrix(idN * 6 + 5, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 6 + 5, col);
+                            supMatrix[idN * 6 + 5, idN * 6 + 5] = 1;
                         }
                     }
                 }
