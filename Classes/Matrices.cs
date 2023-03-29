@@ -1,5 +1,6 @@
 ﻿using FEM.Classes;
 using GH_IO.Serialization;
+using MathNet.Numerics.LinearAlgebra;
 using Rhino.Display;
 using System;
 using System.Collections.Generic;
@@ -159,24 +160,63 @@ namespace FEM.Classes
 
         public LA.Matrix<double> TransformMatrix(LA.Matrix<double> matrix, double x1, double x2, double y1, double y2, double z1, double z2, double l)
         {
-            LA.Matrix<double> t = LA.Matrix<double>.Build.Dense(matrix.RowCount, matrix.ColumnCount, 0);
+            var nodeA = Matrix<double>.Build.DenseOfArray(new double[,]
+            {
+                { x1, y1, z1 }
+            });
 
-            double c = (x2 - x1) / l;
-            double s = (z2 - z1) / l;
+            var V = Matrix<double>.Build.DenseOfArray(new double[,]
+            {
+                { 0, 1, 0 }
+            });
 
-            t[0, 0] = c; t[0, 1] = s; t[0, 2] = 0; t[0, 3] = 0; t[0, 4] = 0; t[0, 5] = 0;
-            t[1, 0] = -s; t[1, 1] = c; t[1, 2] = 0; t[1, 3] = 0; t[1, 4] = 0; t[1, 5] = 0;
-            t[2, 0] = 0; t[2, 1] = 0; t[2, 2] = 1; t[2, 3] = 0; t[2, 4] = 0; t[2, 5] = 0;
-            t[3, 0] = 0; t[3, 1] = 0; t[3, 2] = 0; t[3, 3] = c; t[3, 4] = s; t[3, 5] = 0;
-            t[4, 0] = 0; t[4, 1] = 0; t[4, 2] = 0; t[4, 3] = -s; t[4, 4] = c; t[4, 5] = 0;
-            t[5, 0] = 0; t[5, 1] = 0; t[5, 2] = 0; t[5, 3] = 0; t[5, 4] = 0; t[5, 5] = 1;
+            var nodeB = Matrix<double>.Build.DenseOfArray(new double[,]
+            {
+                { x2, y2, z2 }
+            });
+            var xl = (nodeB - nodeA) / l;
+            var zlNotNorm = CrossProduct(xl, V);
+            var zl = zlNotNorm.NormalizeRows(2);
+            var ylNotNorm = CrossProduct(zl, xl);
+            var yl = ylNotNorm.NormalizeRows(2);
 
-            LA.Matrix<double> tT = t.Transpose();
+            //now set submatrices and stuff
+            var gamma = LA.Matrix<double>.Build.Dense(3, 3, 0);
+            gamma.SetSubMatrix(0, 0, xl);
+            gamma.SetSubMatrix(1, 0, yl);
+            gamma.SetSubMatrix(2, 0, zl);
+
+            var T = LA.Matrix<double>.Build.Dense(12, 12, 0);
+            T.SetSubMatrix(0, 0, gamma);
+            T.SetSubMatrix(3, 3, gamma);
+            T.SetSubMatrix(6, 6, gamma);
+            T.SetSubMatrix(9, 9, gamma);
+
+            LA.Matrix<double> tT = T.Transpose();
             LA.Matrix<double> tm = tT.Multiply(matrix);
-            LA.Matrix<double> tmt = tm.Multiply(t);
-            
+            LA.Matrix<double> tmt = tm.Multiply(T);
+
             return tmt;
 
+        }
+
+        public static Matrix<double> CrossProduct(Matrix<double> a, Matrix<double> b)
+        {
+            if (a.RowCount != 1 || b.RowCount != 1 || a.ColumnCount != 3 || b.ColumnCount != 3)
+            {
+                throw new ArgumentException("Both matrices must be 1x3.");
+            }
+
+            double a2b3 = a[0, 1] * b[0, 2];
+            double a3b2 = a[0, 2] * b[0, 1];
+            double a3b1 = a[0, 2] * b[0, 0];
+            double a1b3 = a[0, 0] * b[0, 2];
+            double a1b2 = a[0, 0] * b[0, 1];
+            double a2b1 = a[0, 1] * b[0, 0];
+
+            return Matrix<double>.Build.DenseOfArray(new double[,] {
+                { a2b3 - a3b2, a3b1 - a1b3,a1b2 - a2b1 }
+            });
         }
 
         //Creates global K with supports ############################################################################
@@ -206,7 +246,7 @@ namespace FEM.Classes
                         {
                             globalKsup.SetSubMatrix(idN * 6 + 1, 0, row);
                             globalKsup.SetSubMatrix(0, idN * 6 + 1 , col);
-                            globalKsup[idN * 3 + 1, idN * 6 + 1] = 1;
+                            globalKsup[idN * 6 + 1, idN * 6 + 1] = 1;
                         }
                         if (support.Tz == true)
                         {
@@ -224,7 +264,7 @@ namespace FEM.Classes
                         {
                             globalKsup.SetSubMatrix(idN * 6 + 4, 0, row);
                             globalKsup.SetSubMatrix(0, idN * 6 + 4, col);
-                            globalKsup[idN * 3 + 4, idN * 6 + 4] = 1;
+                            globalKsup[idN * 6 + 4, idN * 6 + 4] = 1;
                         }
                         if (support.Rz == true)
                         {
@@ -357,7 +397,7 @@ namespace FEM.Classes
                         {
                             supMatrix.SetSubMatrix(idN * 6 + 1, 0, row);
                             supMatrix.SetSubMatrix(0, idN * 6 + 1, col);
-                            supMatrix[idN * 3 + 1, idN * 6 + 1] = 1;
+                            supMatrix[idN * 6 + 1, idN * 6 + 1] = 1;
                         }
                         if (support.Tz == true)
                         {
@@ -375,7 +415,7 @@ namespace FEM.Classes
                         {
                             supMatrix.SetSubMatrix(idN * 6 + 4, 0, row);
                             supMatrix.SetSubMatrix(0, idN * 6 + 4, col);
-                            supMatrix[idN * 3 + 4, idN * 6 + 4] = 1;
+                            supMatrix[idN * 6 + 4, idN * 6 + 4] = 1;
                         }
                         if (support.Rz == true)
                         {
@@ -424,35 +464,6 @@ namespace FEM.Classes
             }
             return W;
         }
-
-
-
-        //Creates global lumped mass matrix #############################################################################
-        //public LA.Matrix<double> BuildMassMatrix(int dof, List<BeamElement> beams)
-        //{
-        //    LA.Matrix<double> massMatrix = LA.Matrix<double>.Build.Dense(dof, dof, 0);
-        //    foreach (BeamElement beam in beams)
-        //    {
-        //        int nDof = 3;
-        //        double l = beam.length;
-        //        double mTot = beam.height * beam.width * beam.rho * beam.length;
-        //        double m1 = mTot * (l / 2);
-
-        //        massMatrix[beam.startNode.globalID * nDof, beam.startNode.globalID * nDof] += m1;
-        //        massMatrix[beam.startNode.globalID * nDof + 1, beam.startNode.globalID * nDof + 1] += m1;
-        //        massMatrix[beam.startNode.globalID * nDof + 2, beam.startNode.globalID * nDof + 2] += m1;
-
-
-        //        massMatrix[beam.endNode.globalID * nDof, beam.endNode.globalID * nDof] += m1;
-        //        massMatrix[beam.endNode.globalID * nDof + 1, beam.endNode.globalID * nDof + 1] += m1;
-        //        massMatrix[beam.endNode.globalID * nDof + 2, beam.endNode.globalID * nDof + 2] += m1;
-
-        //    }
-        //    return massMatrix;
-        //}
-
-
-
 
     }
 }
