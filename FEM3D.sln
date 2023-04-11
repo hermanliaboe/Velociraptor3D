@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FEM3D", "FEM3D.csproj", "{5A222875-136E-4E9E-AD60-1245E2E6C379}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FEM3D", "FEM3D.csproj", "{5A222875-136E-4E9E-AD60-1245E2E6C379}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

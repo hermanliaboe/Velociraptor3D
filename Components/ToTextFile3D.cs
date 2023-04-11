@@ -3,24 +3,24 @@ using System.Collections.Generic;
 
 using Grasshopper.Kernel;
 using Rhino.Geometry;
-using FEM.Classes;
-using FEM.Properties;
+using FEM3D.Classes;
+using FEM3D.Properties;
 
 using MathNet.Numerics;
 using System.IO;
 using MathNet.Numerics.LinearAlgebra.Double;
 
-namespace FEM.Components
+namespace FEM3D.Components
 {
-    public class ToTextFile : GH_Component
+    public class ToTextFile3D : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the MyComponent1 class.
+        /// Initializes a new instance of the ToTextFile3D class.
         /// </summary>
-        public ToTextFile()
-          : base("MyComponent1", "Nickname",
+        public ToTextFile3D()
+          : base("ToTextFile", "Nickname",
               "Description",
-              "Masters", "Model")
+              "Masters3D", "Model3D")
         {
         }
 
@@ -76,7 +76,7 @@ namespace FEM.Components
                     }
                 }
             }
-            
+
 
         }
 
@@ -89,7 +89,7 @@ namespace FEM.Components
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-               // return Resources
+                // return Resources
                 return Resources.txt;
             }
         }
@@ -99,7 +99,7 @@ namespace FEM.Components
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("EC6688B2-1CD5-42F8-A500-3D8DA2EF40F4"); }
+            get { return new Guid("D3B9C812-A2D1-4EFC-995C-CA2886AB24C8"); }
         }
     }
 }

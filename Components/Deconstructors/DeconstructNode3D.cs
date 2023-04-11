@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using FEM.Classes;
-using FEM.Properties;
+using FEM3D.Classes;
+using FEM3D.Properties;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace FEM.Components.Deconstructors
+namespace FEM3D.Components.Deconstructors
 {
-    public class DeconstructNode : GH_Component
+    public class DeconstructNode3D : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the DeconstructNode class.
+        /// Initializes a new instance of the DeconstructNode3D class.
         /// </summary>
-        public DeconstructNode()
+        public DeconstructNode3D()
           : base("DeconstructNode", "Nickname",
               "Deconstructs Node object.",
-              "Masters", "Deconstructors")
+              "Masters3D", "Deconstructors3D")
         {
         }
 
@@ -36,8 +36,11 @@ namespace FEM.Components.Deconstructors
             pManager.AddNumberParameter("localID", "", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("globalID", "", "", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Tx", "", "", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Ty", "", "", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Tz", "", "", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("ry", "", "", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Rx", "", "", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Ry", "", "", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("RZ", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -53,8 +56,11 @@ namespace FEM.Components.Deconstructors
             DA.SetData(1, node.LocalID);
             DA.SetData(2, node.GlobalID);
             DA.SetData(3, node.XBC);
-            DA.SetData(4, node.ZBC);
-            DA.SetData(5, node.RyBC);
+            DA.SetData(4, node.YBC);
+            DA.SetData(5, node.ZBC);
+            DA.SetData(6, node.RxBC);
+            DA.SetData(7, node.RyBC);
+            DA.SetData(8, node.RzBC);
         }
 
         /// <summary>
@@ -75,7 +81,7 @@ namespace FEM.Components.Deconstructors
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("32C046DD-08A6-47DF-809A-9BAC097ADEF4"); }
+            get { return new Guid("5B083A72-CCCC-4FCE-9465-8E39A10B00F4"); }
         }
     }
 }

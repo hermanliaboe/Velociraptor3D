@@ -1,4 +1,4 @@
-using FEM.Classes;
+﻿using FEM3D.Classes;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
@@ -13,28 +13,24 @@ using Rhino.Commands;
 using Rhino.Render;
 using System.IO;
 using Grasshopper.Kernel.Types;
-using FEM.Properties;
+using FEM3D.Properties;
 using Grasshopper.GUI;
 using MathNet.Numerics.Interpolation;
 using Grasshopper.Kernel.Geometry;
 using MathNet.Numerics.LinearAlgebra.Factorization;
 using System.Numerics;
 
-namespace FEM.Components
+namespace FEM3D.Components
 {
-    public class SolverStatic : GH_Component
+    public class SolverStatic3D : GH_Component
     {
         /// <summary>
-        /// Each implementation of GH_Component must provide a public 
-        /// constructor without any arguments.
-        /// Category represents the Tab in which the component will appear, 
-        /// Subcategory the panel. If you use non-existing tab or panel names, 
-        /// new tabs/panels will automatically be created.
+        /// Initializes a new instance of the SolverStatic3D class.
         /// </summary>
-        public SolverStatic()
-          : base("Static FEMSolver", "femmern",
-            "FEM solver with Newmark method",
-            "Masters", "FEM")
+        public SolverStatic3D()
+          : base("Static FEM3DSolver", "femmern",
+            "FEM3D solver with Newmark method",
+            "Masters3D", "FEM3D")
         {
         }
 
@@ -43,7 +39,7 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Assembly","ass","",GH_ParamAccess.item);
+            pManager.AddGenericParameter("Assembly", "ass", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("Scale", "Scale", "", GH_ParamAccess.item, 1.0);
         }
 
@@ -52,15 +48,15 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("item","item","item",GH_ParamAccess.item);
-            pManager.AddGenericParameter("global K","","",GH_ParamAccess.item);
+            pManager.AddNumberParameter("item", "item", "item", GH_ParamAccess.item);
+            pManager.AddGenericParameter("global K", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("global Ksup", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("force Vec", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("displacements Vec", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("displacements List", "", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("displacements Node z", "", "", GH_ParamAccess.list);
             pManager.AddCurveParameter("new lines", "lines", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Nodal Forces","","",GH_ParamAccess.item);
+            pManager.AddGenericParameter("Nodal Forces", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -81,13 +77,13 @@ namespace FEM.Components
             List<BeamElement> elements = model.BeamList;
             List<Support> supports = model.SupportList;
             List<Node> nodes = model.NodeList;
-       
 
 
 
-            int dof = model.NodeList.Count*3;
-          
-         
+
+            int dof = model.NodeList.Count * 6;
+
+
             Matrices matrices = new Matrices();
 
             LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements);
@@ -97,18 +93,19 @@ namespace FEM.Components
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
             LA.Matrix<double> nodalForces = globalK.Multiply(displacements);
 
-            
+
             List<string> dispList = new List<string>();
-            for (int i = 0; i < dof; i=i+3)
+            for (int i = 0; i < dof; i = i + 6)
             {
-                var nodeDisp = "{" + displacements[i, 0] + ", " + displacements[i + 1, 0] + ", " + displacements[i + 2, 0] + "}";
+                var nodeDisp = "{" + displacements[i, 0] + ", " + displacements[i + 1, 0] + ", " + displacements[i + 2, 0] +
+                    displacements[i + 3, 0] + ", " + displacements[i + 4, 0] + ", " + displacements[i + 5, 0] + ", " + "}";
                 dispList.Add(nodeDisp);
             }
 
             List<double> dispNode = new List<double>();
-            for (int i = 0; i < dof; i = i + 3)
+            for (int i = 0; i < dof; i = i + 6)
             {
-                var nodeDisp =  displacements[i + 1, 0];
+                var nodeDisp = displacements[i + 1, 0];
                 dispNode.Add(nodeDisp);
             }
 
@@ -117,10 +114,10 @@ namespace FEM.Components
             {
                 for (int j = 0; j < globalKsup.ColumnCount; j++)
                 {
-                    rhinoMatrix[i,j] = globalKsup[i,j];
+                    rhinoMatrix[i, j] = globalKsup[i, j];
                 }
             }
-            
+
             List<NurbsCurve> lineList1 = new List<NurbsCurve>();
             getNewGeometry(scale, displacements, elements, out lineList1);
 
@@ -159,15 +156,15 @@ namespace FEM.Components
                 double X2 = beam.EndNode.Point.X;
                 double Z2 = beam.EndNode.Point.Z;
 
-                double x1 = displacements[startId * i,  0];
-                double z1 = displacements[startId * i +1,0];
-                double r1 = displacements[startId * i + 2,0];
+                double x1 = displacements[startId * i, 0];
+                double z1 = displacements[startId * i + 1, 0];
+                double r1 = displacements[startId * i + 2, 0];
                 Point3d sP = new Point3d(X1 + x1 * scale, 0, Z1 + z1 * scale);
 
-                double x2 = displacements[endId * i,   0];
+                double x2 = displacements[endId * i, 0];
                 double z2 = displacements[endId * i + 1, 0];
                 double r2 = displacements[endId * i + 2, 0];
-                Point3d eP = new Point3d(X2 + x2 * scale, 0,Z2 + z2 * scale);
+                Point3d eP = new Point3d(X2 + x2 * scale, 0, Z2 + z2 * scale);
 
                 Vector3d yVec = new Vector3d(0, 1, 0);
 
@@ -182,7 +179,7 @@ namespace FEM.Components
                 else
                 {
                     Vector3d sV1 = new Vector3d((eP.X - sP.X), 0, eP.Z - sP.Z);
-                  //  sV1.Rotate(r1 * scale1, yVec);
+                    //  sV1.Rotate(r1 * scale1, yVec);
                     v1 = v1 + sV1;
                 }
 
@@ -196,7 +193,7 @@ namespace FEM.Components
                 else
                 {
                     Vector3d sV2 = new Vector3d((eP.X - sP.X), 0, eP.Z - sP.Z);
-                   // sV2.Rotate(r2 * scale2, yVec);
+                    // sV2.Rotate(r2 * scale2, yVec);
                     v2 = v2 + sV2;
                 }
 
@@ -208,7 +205,7 @@ namespace FEM.Components
             lineList = linelist3;
         }
 
-            
+
 
 
 
@@ -224,15 +221,17 @@ namespace FEM.Components
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
+
                 return Resources.SolverStatic_main_;
             }
         }
 
         /// <summary>
-        /// Each component must have a unique Guid to identify it. 
-        /// It is vital this Guid doesn't change otherwise old ghx files 
-        /// that use the old ID will partially fail during loading.
+        /// Gets the unique ID for this component. Do not change this ID after release.
         /// </summary>
-        public override Guid ComponentGuid => new Guid("e9d8a089-9a52-4aaf-84a9-1fb4630d5e14");
+        public override Guid ComponentGuid
+        {
+            get { return new Guid("604AA6C5-1676-4BB9-B740-599D5882AEA9"); }
+        }
     }
 }

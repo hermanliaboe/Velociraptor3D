@@ -4,22 +4,22 @@ using System.Collections.Generic;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
-using FEM.Classes;
-using FEM.Properties;
+using FEM3D.Classes;
+using FEM3D.Properties;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace FEM.Components
+namespace FEM3D.Components
 {
-    public class AssembleModel : GH_Component
+    public class AssembleModel3D : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the AssembleModel class.
+        /// Initializes a new instance of the AssembleModel3D class.
         /// </summary>
-        public AssembleModel()
+        public AssembleModel3D()
           : base("AssembleModel", "Nickname",
               "Assembles elements, loads and supports into an Assembly object.",
-              "Masters", "Model")
+              "Masters3D", "Model3D")
         {
         }
 
@@ -56,9 +56,9 @@ namespace FEM.Components
             List<Node> nodes = new List<Node>();
 
 
-            DA.GetDataList(0,  beams);
-            DA.GetDataList(1,  supports);
-            DA.GetDataList(2,  loads);
+            DA.GetDataList(0, beams);
+            DA.GetDataList(1, supports);
+            DA.GetDataList(2, loads);
             DA.GetDataList(3, nodes);
 
 
@@ -66,25 +66,31 @@ namespace FEM.Components
 
             foreach (Support sup in supports)
             {
-                foreach (BeamElement b in beams) 
+                foreach (BeamElement b in beams)
                 {
                     Node startNode = b.StartNode;
                     if (startNode.Point == sup.Point)
                     {
                         startNode.XBC = sup.Tx;
+                        startNode.YBC = sup.Ty;
                         startNode.ZBC = sup.Tz;
+                        startNode.RxBC = sup.Rx;
                         startNode.RyBC = sup.Ry;
+                        startNode.RzBC = sup.Rz;
                     }
 
                     Node endNode = b.EndNode;
                     if (endNode.Point == sup.Point)
                     {
                         endNode.XBC = sup.Tx;
+                        endNode.YBC = sup.Ty;
                         endNode.ZBC = sup.Tz;
+                        endNode.RxBC = sup.Rx;
                         endNode.RyBC = sup.Ry;
+                        endNode.RzBC = sup.Rz;
                     }
-                }                    
-             }
+                }
+            }
 
             foreach (Load load in loads)
             {
@@ -102,10 +108,10 @@ namespace FEM.Components
             DA.SetData(0, assembly);
         }
 
-    
 
-            
-        
+
+
+
 
         /// <summary>
         /// Provides an Icon for the component.
@@ -116,7 +122,7 @@ namespace FEM.Components
             {
                 //You can add image files to your project resources and access them like this:
                 //return Resources.assembly.bmp;
-                
+
                 return Resources.assembly;
             }
         }
@@ -126,7 +132,7 @@ namespace FEM.Components
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("8F0FF416-72DD-4B79-9F02-1A30BCEE2AE9"); }
+            get { return new Guid("D46EE2B0-4BFE-47E7-AF57-F31F2199E3C2"); }
         }
     }
 }

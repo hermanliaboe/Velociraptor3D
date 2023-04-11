@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using FEM.Classes;
-using FEM.Properties;
+using FEM3D.Classes;
+using FEM3D.Properties;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace FEM.Components
+namespace FEM3D.Components
 {
-    public class CreateLoad : GH_Component
+    public class CreateLoad3D : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the Load class.
+        /// Initializes a new instance of the CreateLoad3D class.
         /// </summary>
-        public CreateLoad()
+        public CreateLoad3D()
           : base("CreateLoad", "Nickname",
               "Creates a load at given point with given load vector.",
-              "Masters", "Model")
+              "Masters3D", "Model3D")
         {
         }
 
@@ -25,7 +25,7 @@ namespace FEM.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             Vector3d nullVec = new Vector3d(0.0, 0.0, 0.0);
-            pManager.AddPointParameter("Point","pt","Attact point for force vector", GH_ParamAccess.item);
+            pManager.AddPointParameter("Point", "pt", "Attact point for force vector", GH_ParamAccess.item);
             pManager.AddVectorParameter("Force Vec", "Fvec", "Vector to decribe sice and angle of force", GH_ParamAccess.item, nullVec);
             pManager.AddVectorParameter("Moment Vec", "Mvec", "Vector to decribe sice and rotation of moment", GH_ParamAccess.item, nullVec);
 
@@ -49,7 +49,7 @@ namespace FEM.Components
             Vector3d forceVec = new Vector3d();
             Vector3d momentVec = new Vector3d();
 
-            Vector3d nullVec = new Vector3d(0.0,0.0,0.0);
+            Vector3d nullVec = new Vector3d(0.0, 0.0, 0.0);
 
             DA.GetData(0, ref loadPt);
             DA.GetData(1, ref forceVec);
@@ -83,7 +83,7 @@ namespace FEM.Components
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("C9C77D55-6065-47CB-B39B-FFF857840766"); }
+            get { return new Guid("0E4B592E-E29C-409D-BDA6-F303872DAEC2"); }
         }
     }
 }

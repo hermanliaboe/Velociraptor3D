@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using FEM.Classes;
-using FEM.Properties;
+using FEM3D.Classes;
+using FEM3D.Properties;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace FEM.Components.Deconstructors
+namespace FEM3D.Components.Deconstructors
 {
-    public class DeconstructBeamElement : GH_Component
+    public class DeconstructBeamElement3D : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the DeconstructBeamElement class.
+        /// Initializes a new instance of the DeconstructBeamElement3D class.
         /// </summary>
-        public DeconstructBeamElement()
+        public DeconstructBeamElement3D()
           : base("DeconstructBeamElement", "Nickname",
               "Deconstructs BeamElement object",
-              "Masters", "Deconstructors")
+              "Masters3D", "Deconstructors3D")
         {
         }
 
@@ -36,11 +36,13 @@ namespace FEM.Components.Deconstructors
             pManager.AddGenericParameter("endNode", "eNode", "", GH_ParamAccess.item);
             pManager.AddLineParameter("line", "l", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("BeamID", "bID", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("height","h","",GH_ParamAccess.item);
+            pManager.AddNumberParameter("height", "h", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("width", "w", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("YoungsMod", "E", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Length","L","",GH_ParamAccess.item);
+            pManager.AddNumberParameter("Length", "L", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("Material density", "rho", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("ShearMod", "J", "", GH_ParamAccess.item);
+
         }
 
         /// <summary>
@@ -61,6 +63,8 @@ namespace FEM.Components.Deconstructors
             DA.SetData(6, beam.YoungsMod);
             DA.SetData(7, beam.Length);
             DA.SetData(8, beam.Rho);
+            DA.SetData(9, beam.ShearMod);
+
         }
 
         /// <summary>
@@ -81,7 +85,7 @@ namespace FEM.Components.Deconstructors
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("369D319E-10A2-41F0-BA4A-88A2F4D67130"); }
+            get { return new Guid("7B8CED19-C55B-4B50-8D8D-E89C739DD7E8"); }
         }
     }
 }

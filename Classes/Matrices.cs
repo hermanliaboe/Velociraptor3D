@@ -1,4 +1,4 @@
-﻿using FEM.Classes;
+﻿using FEM3D.Classes;
 using GH_IO.Serialization;
 using MathNet.Numerics.LinearAlgebra;
 using Rhino.Display;
@@ -13,7 +13,7 @@ using System.Xml;
 using System.Xml.Linq;
 using LA = MathNet.Numerics.LinearAlgebra;
 
-namespace FEM.Classes
+namespace FEM3D.Classes
 {
     internal class Matrices
     {
@@ -58,12 +58,13 @@ namespace FEM.Classes
         public LA.Matrix<double> BuildGlobalK(int dof, List<BeamElement> elements)
         {
             LA.Matrix<double> globalK = LA.Matrix<double>.Build.Dense(dof, dof, 0);
-
+            //var kEl = LA.Matrix<double>.Build.Dense(dof/12,dof/12,0);
             foreach (var element in elements)
             {
-                int nDof = element.ElDof/12;
+                int nDof = element.ElDof/2;
                 //Retrive element k from function
                 LA.Matrix<double> ke = GetKel(element);
+                //kEl = ke;
 
                 //Get nodeID and *3 to get globalK placement
                 int idS = element.StartNode.GlobalID * nDof;
@@ -146,6 +147,8 @@ namespace FEM.Classes
             kEl[5, 5] = kEl[11, 11] = k4;
             kEl[5, 11] = kEl[11, 5] = k5;
             kEl[2, 2] = kEl[8, 8] = k6;
+            kEl[3, 3] = kEl[9, 9] = k10;
+            kEl[3, 9] = kEl[9, 3] = -k10;
             kEl[2, 8] = kEl[8, 2] = -k6;
             kEl[4, 8] = kEl[8, 4] = kEl[8, 10] = kEl[10, 8] = k7;
             kEl[2, 4] = kEl[4, 2] = kEl[2, 10] = kEl[10, 2] = -k7;
@@ -155,7 +158,7 @@ namespace FEM.Classes
 
             //Creates T-matrix to adjust element to global axis
             LA.Matrix<double> kT = TransformMatrix(kEl, x1, x2, y1, y2, z1, z2, l);
-            return kT;
+            return kEl;
         }
 
         public LA.Matrix<double> TransformMatrix(LA.Matrix<double> matrix, double x1, double x2, double y1, double y2, double z1, double z2, double l)
@@ -280,7 +283,7 @@ namespace FEM.Classes
 
         public LA.Matrix<double> GetMel(BeamElement beam, bool lumped)
         {
-            int dof = 6;  // dof per element
+            int dof = beam.ElDof;  // dof per element
 
             //gets length of element
             Node startNode = beam.StartNode;

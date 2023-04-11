@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using FEM.Classes;
-using FEM.Properties;
+using FEM3D.Classes;
+using FEM3D.Properties;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace FEM.Components
+namespace FEM3D.Components
 {
-    public class CreateBeamElements : GH_Component
+    public class CreateBeamElements3D : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the Beam class.
+        /// Initializes a new instance of the CreateBeamElements3D class.
         /// </summary>
-        public CreateBeamElements()
+        public CreateBeamElements3D()
           : base("CreateBeamElements", "Nickname",
               "Line to element with two nodes",
-              "Masters", "Model")
+              "Masters3D", "Model3D")
         {
         }
 
@@ -25,7 +25,7 @@ namespace FEM.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddLineParameter("Lines", "ls", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("CrossSection", "cs","",GH_ParamAccess.item) ;
+            pManager.AddGenericParameter("CrossSection", "cs", "", GH_ParamAccess.item);
             pManager.AddBooleanParameter("3D", "3D", "if True 3D 12DOF element, if False 2D 6DOF element", GH_ParamAccess.item, true);
         }
 
@@ -34,8 +34,8 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Elements","els","", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Nodes","ns","", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Elements", "els", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Nodes", "ns", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace FEM.Components
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            List <Line> lines = new List<Line>();
+            List<Line> lines = new List<Line>();
             CrossSection cs = new CrossSection();
             bool dof = true;
             DA.GetDataList(0, lines);
@@ -54,7 +54,7 @@ namespace FEM.Components
             List<BeamElement> beams = new List<BeamElement>();
             Dictionary<Point3d, Node> existingNodes = new Dictionary<Point3d, Node>();
             List<Node> nodes = new List<Node>();
-            
+
             int idc = 0; // element global ID count
             int bidc = 0; // beam ID count
             foreach (Line line in lines)
@@ -91,8 +91,9 @@ namespace FEM.Components
                 element.Width = cs.Width;
                 element.YoungsMod = cs.YoungsMod;
                 element.Rho = cs.Rho;
-                if (dof) { element.ElDof = 12;}
-                else { element.ElDof = 6;}
+                element.ShearMod = cs.ShearMod;
+                if (dof) { element.ElDof = 12; }
+                else { element.ElDof = 6; }
                 beams.Add(element);
             }
 
@@ -120,7 +121,7 @@ namespace FEM.Components
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("36B2609B-0264-4FD9-AFE9-631B3E6CACB5"); }
+            get { return new Guid("AFD7E891-D643-4CA7-981D-3989CD1E253D"); }
         }
     }
 }

@@ -1,21 +1,27 @@
-﻿using System;
+﻿
+
+using System;
+using System.Collections;
 using System.Collections.Generic;
-using FEM.Classes;
-using FEM.Properties;
+using System.Resources;
+using System.Runtime.CompilerServices;
+using System.Xml.Linq;
+using FEM3D.Classes;
+using FEM3D.Properties;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace FEM.Components
+namespace FEM3D.Components
 {
-    public class AddCrossSection : GH_Component
+    public class AddCrossSection3D : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the AddCrossSection class.
+        /// Initializes a new instance of the AddCrossSection3D class.
         /// </summary>
-        public AddCrossSection()
-          : base("AddCrossSection", "Nickname",
-              "Description",
-              "Masters", "Model")
+        public AddCrossSection3D()
+         : base("AddCrossSection", "Nickname",
+             "Description",
+             "Masters3D", "Model3D")
         {
         }
 
@@ -24,10 +30,12 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("height","h","",GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("height", "h", "", GH_ParamAccess.item, 1);
             pManager.AddNumberParameter("width", "w", "", GH_ParamAccess.item, 1);
             pManager.AddNumberParameter("YoungsModulus", "E", "", GH_ParamAccess.item, 210000);
             pManager.AddNumberParameter("Density", "rho", "", GH_ParamAccess.item, 0.00000785);
+            pManager.AddNumberParameter("ShearModulus", "ShearModulus", "", GH_ParamAccess.item, 81000.0);
+
         }
 
         /// <summary>
@@ -48,12 +56,14 @@ namespace FEM.Components
             double width = 0.0;
             double youngsMod = 0.0;
             double rho = 0.0;
+            double shearMod = 0.0;
 
             DA.GetData(0, ref height);
             DA.GetData(1, ref width);
             DA.GetData(2, ref youngsMod);
             DA.GetData(3, ref rho);
-            CrossSection cs = new CrossSection(height, width, youngsMod, rho);
+            DA.GetData(4, ref shearMod);
+            CrossSection cs = new CrossSection(height, width, youngsMod, rho, shearMod);
             DA.SetData(0, cs);
         }
 
@@ -75,7 +85,7 @@ namespace FEM.Components
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("AA969851-B713-4717-8F39-E12B47BA9C0C"); }
+            get { return new Guid("FAB05AA4-674F-49A3-9CFB-0A83C2E5FD7E"); }
         }
     }
 }

@@ -2,20 +2,19 @@
 using System.Collections.Generic;
 
 using Grasshopper.Kernel;
-using MathNet.Numerics.LinearAlgebra.Double;
 using Rhino.Geometry;
 
-namespace FEM.Components
+namespace FEM3D.Components
 {
-    public class Reactions : GH_Component
+    public class _3Dcomp : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the MyComponent1 class.
+        /// Initializes a new instance of the _3Dcomp class.
         /// </summary>
-        public Reactions()
-          : base("MyComponent1", "Nickname",
+        public _3Dcomp()
+          : base("3Dcomp", "Nickname",
               "Description",
-              "Category", "Subcategory")
+              "Masters3D", "Subcategory")
         {
         }
 
@@ -24,7 +23,6 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("displacements", "disp", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -32,9 +30,6 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Normal forces", "N", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Shear forces", "V", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Moment forces", "M", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -43,26 +38,6 @@ namespace FEM.Components
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
-
-            DenseMatrix displacments = new DenseMatrix(1);
-            DA.GetData(0,ref displacments);
-
-            int dof = displacments.RowCount / 3;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         }
 
         /// <summary>
@@ -83,7 +58,7 @@ namespace FEM.Components
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("8FDB900D-1FE9-410E-8B56-1E0CB7F25EC0"); }
+            get { return new Guid("83725416-8FAA-477E-929F-5096487B0670"); }
         }
     }
 }

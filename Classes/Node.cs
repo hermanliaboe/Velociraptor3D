@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Rhino.Geometry;
 using Grasshopper.Kernel.Types;
 
-namespace FEM.Classes
+namespace FEM3D.Classes
 {
     internal class Node
     {

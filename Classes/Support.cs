@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FEM.Classes
+namespace FEM3D.Classes
 {
     internal class Support
     {
@@ -19,15 +19,15 @@ namespace FEM.Classes
         
         public Support() { }
 
-        public Support(Point3d point, bool tx, bool tz, bool ty, bool ry, bool Rx, bool Ry) 
+        public Support(Point3d point, bool tx, bool ty, bool tz, bool rx, bool ry, bool rz) 
         {
             this.Point = point;
             this.Tx = tx;
             this.Tz = tz;
             this.Ty = ty;
             this.Ry = ry;
-            this.Rx = Rx;
-            this.Rz = Ry;
+            this.Rx = rx;
+            this.Rz = rz;
         }
     }
 }

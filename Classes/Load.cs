@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FEM.Classes
+namespace FEM3D.Classes
 {
     internal class Load
     {

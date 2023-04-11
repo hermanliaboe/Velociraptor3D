@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using FEM.Classes;
-using FEM.Properties;
+using FEM3D.Classes;
+using FEM3D.Properties;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace FEM.Components.Deconstructors
+namespace FEM3D.Components.Deconstructors
 {
-    public class DeconstructAssembly : GH_Component
+    public class DeconstructAssembly3D : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the DeconstructAssembly class.
+        /// Initializes a new instance of the DeconstructAssembly3D class.
         /// </summary>
-        public DeconstructAssembly()
+        public DeconstructAssembly3D()
           : base("DeconstructAssembly", "Nickname",
               "Deconstructs Assembly object",
-              "Masters", "Deconstructors")
+              "Masters3D", "Deconstructors3D")
         {
         }
 
@@ -35,7 +35,7 @@ namespace FEM.Components.Deconstructors
             pManager.AddGenericParameter("beams", "sNode", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("supports", "sup", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("Loads", "loads", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Nodes","nodes","",GH_ParamAccess.list);
+            pManager.AddGenericParameter("Nodes", "nodes", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace FEM.Components.Deconstructors
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("76643FD3-90C4-403B-9F60-BC9EB36A8D3B"); }
+            get { return new Guid("0840495F-4141-4179-BA94-8A35C32B35B6"); }
         }
     }
 }
