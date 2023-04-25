@@ -20,6 +20,7 @@ using System.Linq;
 using GH_IO;
 using MathNet.Numerics.LinearAlgebra.Complex;
 using FEM3D.Properties;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace FEM3D.Components
 {
@@ -64,7 +65,7 @@ namespace FEM3D.Components
             pManager.AddGenericParameter("Velocity", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Nodal Forces", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Natural Frequencies [Hz]", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Natural Frequencies [Hz], vs", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Natural Frequencies [Hz], sorted", "", "", GH_ParamAccess.item);
 
         }
 
@@ -117,12 +118,22 @@ namespace FEM3D.Components
                 nodalForces.SetSubMatrix(0, i, globalK.Multiply(displacements.SubMatrix(0, dof, i, 1)));
             }
 
-            var eigs = EigenValues(globalK, globalConsistentM);
+            var eigs = EigenValues(globalKsup, globalConsistentMsup);
             var natFreq = LA.Matrix<double>.Build.Dense(1, eigs.ColumnCount, 0);
+            // Sort the natFreq matrix from smallest to largest using an array
+            
+            
             for (int i = 0; i < eigs.ColumnCount; i++)
             {
                 natFreq[0, i] = Math.Sqrt(eigs[0, i]);
             }
+
+            var sortedNatFreqArray = natFreq.ToRowMajorArray();
+            Array.Sort(sortedNatFreqArray);
+
+            // Convert the sorted array back into a MathNet.Numerics.LinearAlgebra.Matrix<double>
+            var sortedNatFreqMatrix = Matrix<double>.Build.Dense(1, sortedNatFreqArray.Length);
+            sortedNatFreqMatrix.SetRow(0, sortedNatFreqArray);
 
 
             Rhino.Geometry.Matrix rhinoMatrixK = CreateRhinoMatrix(globalK);
@@ -135,6 +146,7 @@ namespace FEM3D.Components
             Rhino.Geometry.Matrix rhinoMatrixC = CreateRhinoMatrix(globalC);
             Rhino.Geometry.Matrix rhinoMatrixCred = CreateRhinoMatrix(supC);
             Rhino.Geometry.Matrix rhinoMatrixNatFreq = CreateRhinoMatrix(natFreq);
+            Rhino.Geometry.Matrix rhinoMatrixSortedNatFreq = CreateRhinoMatrix(sortedNatFreqMatrix);
 
 
             DA.SetData(0, rhinoMatrixK);
@@ -150,7 +162,7 @@ namespace FEM3D.Components
             DA.SetData(10, velocities);
             DA.SetData(11, nodalForces);
             DA.SetData(12, rhinoMatrixNatFreq);
-            DA.SetData(13, natFreq);
+            DA.SetData(13, rhinoMatrixSortedNatFreq);
         }
 
 
