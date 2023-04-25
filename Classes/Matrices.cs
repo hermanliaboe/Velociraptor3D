@@ -158,7 +158,7 @@ namespace FEM3D.Classes
 
             //Creates T-matrix to adjust element to global axis
             LA.Matrix<double> kT = TransformMatrix(kEl, x1, x2, y1, y2, z1, z2, l);
-            return kEl;
+            return kT;
         }
 
         public LA.Matrix<double> TransformMatrix(LA.Matrix<double> matrix, double x1, double x2, double y1, double y2, double z1, double z2, double l)

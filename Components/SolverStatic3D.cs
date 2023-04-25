@@ -56,7 +56,7 @@ namespace FEM3D.Components
             pManager.AddGenericParameter("displacements List", "", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("displacements Node z", "", "", GH_ParamAccess.list);
             pManager.AddCurveParameter("new lines", "lines", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Nodal Forces", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Disp matrix", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -95,6 +95,7 @@ namespace FEM3D.Components
 
 
             List<string> dispList = new List<string>();
+
             for (int i = 0; i < dof; i = i + 6)
             {
                 var nodeDisp = "{" + displacements[i, 0] + ", " + displacements[i + 1, 0] + ", " + displacements[i + 2, 0] +
@@ -102,10 +103,23 @@ namespace FEM3D.Components
                 dispList.Add(nodeDisp);
             }
 
+            Rhino.Geometry.Matrix dispMatrix = new Rhino.Geometry.Matrix(dof/6, 6);
+            int count = 0;
+            for (int j = 0; j < dof ; j = j + 6)
+            {
+                dispMatrix[count, 0] = displacements[j,0];
+                dispMatrix[count, 1] = displacements[j + 1,0];
+                dispMatrix[count, 2] = displacements[j + 2, 0];
+                dispMatrix[count, 3] = displacements[j + 3, 0];
+                dispMatrix[count, 4] = displacements[j + 4, 0];
+                dispMatrix[count, 5] = displacements[j + 5, 0];
+                count++;
+            }
+
             List<double> dispNode = new List<double>();
             for (int i = 0; i < dof; i = i + 6)
             {
-                var nodeDisp = displacements[i + 1, 0];
+                var nodeDisp = displacements[i + 2, 0];
                 dispNode.Add(nodeDisp);
             }
 
@@ -118,8 +132,8 @@ namespace FEM3D.Components
                 }
             }
 
-            List<NurbsCurve> lineList1 = new List<NurbsCurve>();
-            getNewGeometry(scale, displacements, elements, out lineList1);
+            //List<NurbsCurve> lineList1 = new List<NurbsCurve>();
+            getNewGeometry(scale, displacements, elements, out List<NurbsCurve> lineList1);
 
             //DA.SetData(0, item);
             DA.SetData(1, globalK);
@@ -129,7 +143,7 @@ namespace FEM3D.Components
             DA.SetDataList(5, dispList);
             DA.SetDataList(6, dispNode);
             DA.SetDataList(7, lineList1);
-            DA.SetData(8, nodalForces);
+            DA.SetData(8, dispMatrix);
         }
 
 
@@ -139,67 +153,73 @@ namespace FEM3D.Components
             List<Line> linelist2 = new List<Line>();
             List<NurbsCurve> linelist3 = new List<NurbsCurve>();
 
-            int i = 3;
+            int i = 6;
 
             foreach (BeamElement beam in beams)
             {
                 Vector3d v1 = new Vector3d(0, 0, 0);
                 Vector3d v2 = new Vector3d(0, 0, 0);
-                double scale1 = scale;
-                double scale2 = scale;
 
                 int startId = beam.StartNode.GlobalID;
                 double X1 = beam.StartNode.Point.X;
+                double Y1 = beam.StartNode.Point.Y;
                 double Z1 = beam.StartNode.Point.Z;
 
                 int endId = beam.EndNode.GlobalID;
                 double X2 = beam.EndNode.Point.X;
+                double Y2 = beam.EndNode.Point.Y;
                 double Z2 = beam.EndNode.Point.Z;
 
                 double x1 = displacements[startId * i, 0];
-                double z1 = displacements[startId * i + 1, 0];
-                double r1 = displacements[startId * i + 2, 0];
-                Point3d sP = new Point3d(X1 + x1 * scale, 0, Z1 + z1 * scale);
+                double y1 = displacements[startId * i + 1 , 0];
+                double z1 = displacements[startId * i + 2, 0];
+                //double r1 = displacements[startId * i + 2, 0];
+                Point3d sP = new Point3d(X1 + x1 * scale, Y1 + y1 * scale, Z1 + z1 * scale);
 
                 double x2 = displacements[endId * i, 0];
-                double z2 = displacements[endId * i + 1, 0];
-                double r2 = displacements[endId * i + 2, 0];
-                Point3d eP = new Point3d(X2 + x2 * scale, 0, Z2 + z2 * scale);
+                double y2 = displacements[endId * i + 1, 0];
+                double z2 = displacements[endId * i + 2, 0];
+                Point3d eP = new Point3d(X2 + x2 * scale, Y2 + y2 * scale, Z2 + z2 * scale);
 
                 Vector3d yVec = new Vector3d(0, 1, 0);
 
+                Vector3d sV1 = new Vector3d((eP.X - sP.X), eP.Y - sP.Y, eP.Z - sP.Z);
+                v1 = v1 + sV1;
 
-                if (beam.StartNode.RyBC == true)
+                Vector3d sV2 = new Vector3d((eP.X - sP.X), Y2 - Y1, eP.Z - sP.Z);
+                v2 = v2 + sV2;
+                /*
+                if (beam.StartNode.RyBC == true && beam.StartNode.RzBC == true)
                 {
-                    Vector3d sV1 = new Vector3d((X2 - X1), 0, Z2 - Z1);
+                    Vector3d sV1 = new Vector3d((X2 - X1), Y2 - Y1, Z2 - Z1);
                     //scale1 = 0;
-                    sV1.Rotate(r1 * scale1, yVec);
+                    //sV1.Rotate(r1 * scale1, yVec);
                     v1 = v1 + sV1;
                 }
-                else
+                else if ((beam.StartNode.RyBC == true && beam.StartNode.RzBC == false))
                 {
-                    Vector3d sV1 = new Vector3d((eP.X - sP.X), 0, eP.Z - sP.Z);
+                    Vector3d sV1 = new Vector3d((eP.X - sP.X), eP.Y - sP.Y, eP.Z - sP.Z);
                     //  sV1.Rotate(r1 * scale1, yVec);
                     v1 = v1 + sV1;
                 }
 
                 if (beam.EndNode.RyBC == true)
                 {
-                    Vector3d sV2 = new Vector3d((X2 - X1), 0, Z2 - Z1);
+                    Vector3d sV2 = new Vector3d((X2 - X1), Y2 - Y1, Z2 - Z1);
                     //scale2 = 0;
-                    sV2.Rotate(r2 * scale2, yVec);
+                    //sV2.Rotate(r2 * scale2, yVec);
                     v2 = v2 + sV2;
                 }
                 else
                 {
-                    Vector3d sV2 = new Vector3d((eP.X - sP.X), 0, eP.Z - sP.Z);
+                    Vector3d sV2 = new Vector3d((eP.X - sP.X), Y2 - Y1, eP.Z - sP.Z);
                     // sV2.Rotate(r2 * scale2, yVec);
                     v2 = v2 + sV2;
                 }
-
-
+                
+                */
                 List<Point3d> pts = new List<Point3d>() { sP, eP };
-                NurbsCurve nc = NurbsCurve.CreateHSpline(pts, v1, v2);
+                NurbsCurve nc = NurbsCurve.CreateHSpline(pts, sV1, sV2);
                 linelist3.Add(nc);
             }
             lineList = linelist3;
