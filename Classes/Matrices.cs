@@ -299,7 +299,7 @@ namespace FEM3D.Classes
             double mTot = beam.Height * beam.Width * beam.Rho * beam.Length;
             double m = beam.Height * beam.Width * beam.Rho;
             double A = beam.Height * beam.Width;
-            double Ix = (1 / 12.0) * m * (Math.Pow(beam.Height, 2.0) + Math.Pow(beam.Width, 2.0));
+            double Ix = (1.0 / 12.0) * m * (Math.Pow(beam.Height, 2.0) + Math.Pow(beam.Width, 2.0));
             double rx2 = Ix / A;
             double a = l / 2.0;
 
@@ -307,7 +307,7 @@ namespace FEM3D.Classes
             // mass element matrix of right size filled with zeros
             LA.Matrix<double> mEl = LA.Matrix<double>.Build.Dense(dof, dof, 0);
 
-            mEl[0, 0] = mEl[6,6] = 70.0;
+            mEl[0, 0] = mEl[6, 6] = Ix; //70.0;
             mEl[0, 6] = mEl[6, 0] = 35.0;
             mEl[1, 1] = mEl[2, 2] = mEl[7, 7] = mEl[8, 8] = 78.0;
             mEl[1, 5] = mEl[8, 10] = mEl[10, 8] = mEl[5, 1] = 22.0 * a;

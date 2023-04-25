@@ -63,7 +63,9 @@ namespace FEM3D.Components
             pManager.AddGenericParameter("Displacements", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Velocity", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Nodal Forces", "", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Natural Frequencies [Hz]", "", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Natural Frequencies [Hz]", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Natural Frequencies [Hz], vs", "", "", GH_ParamAccess.item);
+
         }
 
         /// <summary>
@@ -115,12 +117,13 @@ namespace FEM3D.Components
                 nodalForces.SetSubMatrix(0, i, globalK.Multiply(displacements.SubMatrix(0, dof, i, 1)));
             }
 
-            var eigs = EigenValues(globalKsup, globalConsistentMsup);
-            var natFreq = new List<double>();
+            var eigs = EigenValues(globalK, globalConsistentM);
+            var natFreq = LA.Matrix<double>.Build.Dense(1, eigs.ColumnCount, 0);
             for (int i = 0; i < eigs.ColumnCount; i++)
             {
-                natFreq.Add(Math.Sqrt(eigs[0, i]) / (2 * Math.PI));
+                natFreq[0, i] = Math.Sqrt(eigs[0, i]);
             }
+
 
             Rhino.Geometry.Matrix rhinoMatrixK = CreateRhinoMatrix(globalK);
             Rhino.Geometry.Matrix rhinoMatrixKred = CreateRhinoMatrix(globalKsup);
@@ -131,6 +134,7 @@ namespace FEM3D.Components
             Rhino.Geometry.Matrix rhinoMatrixConsistentMred = CreateRhinoMatrix(globalConsistentMsup);
             Rhino.Geometry.Matrix rhinoMatrixC = CreateRhinoMatrix(globalC);
             Rhino.Geometry.Matrix rhinoMatrixCred = CreateRhinoMatrix(supC);
+            Rhino.Geometry.Matrix rhinoMatrixNatFreq = CreateRhinoMatrix(natFreq);
 
 
             DA.SetData(0, rhinoMatrixK);
@@ -145,7 +149,8 @@ namespace FEM3D.Components
             DA.SetData(9, displacements);
             DA.SetData(10, velocities);
             DA.SetData(11, nodalForces);
-            DA.SetDataList(12, natFreq);
+            DA.SetData(12, rhinoMatrixNatFreq);
+            DA.SetData(13, natFreq);
         }
 
 
