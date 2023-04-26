@@ -44,6 +44,10 @@ namespace FEM3D.Components
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Assembly", "ass", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Time Step", "", "Time step for the Newmark method. Default 0.01", GH_ParamAccess.item, 0.01);
+            pManager.AddNumberParameter("Beta", "", "Beta value for the Newmark method. Default 1/4 (average acceleration)", GH_ParamAccess.item, 1.0 / 4.0);
+            pManager.AddNumberParameter("Gamma", "", "Gamme value for the Newmark method. Default 1/2 (average acceleration)", GH_ParamAccess.item, 1.0 / 2.0);
+            pManager.AddNumberParameter("Time", "", "Run time for the Newmark method. Default 5 seconds", GH_ParamAccess.item, 5.0);
 
         }
 
@@ -77,7 +81,16 @@ namespace FEM3D.Components
         {
 
             Classes.Assembly model = new Classes.Assembly();
+            double T = 5.0;
+            double dt = 0.01;
+            double beta = 1.0 / 4.0;
+            double gamma = 1.0 / 2.0;
             DA.GetData(0, ref model);
+            DA.GetData(0, ref model);
+            DA.GetData(1, ref dt);
+            DA.GetData(2, ref beta);
+            DA.GetData(3, ref gamma);
+            DA.GetData(4, ref T);
 
             List<Load> loads = model.LoadList;
             List<BeamElement> elements = model.BeamList;
@@ -101,11 +114,6 @@ namespace FEM3D.Components
             LA.Matrix<double> f0 = matrices.BuildForceVector(loads, dof);
 
             //Usage of newmark
-
-            double T = 5.0;
-            double dt = 0.01;
-            double beta = 1.0 / 4.0;
-            double gamma = 1.0 / 2.0;
 
             LA.Matrix<double> d0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
             LA.Matrix<double> v0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
