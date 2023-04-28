@@ -155,7 +155,7 @@ namespace FEM3D.Classes
             kEl[4, 4] = kEl[10, 10] = k8;
             kEl[4, 10] = kEl[10, 4] = k9;
 
-
+            beam.kel = kEl;
             //Creates T-matrix to adjust element to global axis
             LA.Matrix<double> kT = TransformMatrix(kEl, x1, x2, y1, y2, z1, z2, l);
             return kT;
@@ -201,6 +201,57 @@ namespace FEM3D.Classes
 
             return tmt;
 
+        }
+
+        public LA.Matrix<double> TransformVec(LA.Matrix<double> matrix, double x1, double x2, double y1, double y2, double z1, double z2, double l)
+        {
+            var nodeA = Matrix<double>.Build.DenseOfArray(new double[,]
+            {
+                { x1, y1, z1 }
+            });
+
+            var V = Matrix<double>.Build.DenseOfArray(new double[,]
+            {
+                { 0, 1, 0 }
+            });
+
+            var nodeB = Matrix<double>.Build.DenseOfArray(new double[,]
+            {
+                { x2, y2, z2 }
+            });
+            var xl = (nodeB - nodeA) / l;
+            var zlNotNorm = CrossProduct(xl, V);
+            var zl = zlNotNorm.NormalizeRows(2);
+            var ylNotNorm = CrossProduct(zl, xl);
+            var yl = ylNotNorm.NormalizeRows(2);
+
+            //now set submatrices and stuff
+            var gamma = LA.Matrix<double>.Build.Dense(3, 3, 0);
+            gamma.SetSubMatrix(0, 0, xl);
+            gamma.SetSubMatrix(1, 0, yl);
+            gamma.SetSubMatrix(2, 0, zl);
+
+            var T = LA.Matrix<double>.Build.Dense(12, 12, 0);
+            T.SetSubMatrix(0, 0, gamma);
+            T.SetSubMatrix(3, 3, gamma);
+            T.SetSubMatrix(6, 6, gamma);
+            T.SetSubMatrix(9, 9, gamma);
+
+            // LA.Matrix<double> tT = T.Transpose();
+            LA.Matrix<double> tm = T.Multiply(matrix);
+
+            return tm;
+
+        }
+
+        public List<double> GetForceList(LA.Matrix<double> forces)
+        {
+            List<double> Forcelist = new List<double>();
+            for (int i = 0; i < forces.RowCount; i++)
+            {
+                Forcelist.Add(forces[i, 0]);
+            }
+            return Forcelist;
         }
 
         public static Matrix<double> CrossProduct(Matrix<double> a, Matrix<double> b)

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LA = MathNet.Numerics.LinearAlgebra;
 
 namespace FEM3D.Classes
 {
@@ -22,6 +23,8 @@ namespace FEM3D.Classes
         public double YoungsMod;
         public double Rho;
         public double ShearMod;
+        public LA.Matrix<double> kel;
+        public List<double> ForceList;
 
         public BeamElement() { }
 
@@ -29,7 +32,7 @@ namespace FEM3D.Classes
         {
             this.Id = id;
             this.Line = line;
-            this.Length= GetElementLength(line);
+            this.Length = GetElementLength(line);
         }
 
         public double GetElementLength(Line line)
@@ -50,8 +53,6 @@ namespace FEM3D.Classes
 
             return l;
         }
-
-
-
     }
+        
 }
