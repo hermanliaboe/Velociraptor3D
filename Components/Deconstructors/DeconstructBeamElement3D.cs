@@ -42,6 +42,8 @@ namespace FEM3D.Components.Deconstructors
             pManager.AddNumberParameter("Length", "L", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("Material density", "rho", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("ShearMod", "J", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Forces", "F", "", GH_ParamAccess.list);
+            
 
         }
 
@@ -64,6 +66,7 @@ namespace FEM3D.Components.Deconstructors
             DA.SetData(7, beam.Length);
             DA.SetData(8, beam.Rho);
             DA.SetData(9, beam.ShearMod);
+            DA.SetDataList(10, beam.ForceList);
 
         }
 

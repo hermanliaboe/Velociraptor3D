@@ -57,6 +57,7 @@ namespace FEM3D.Components
             pManager.AddGenericParameter("displacements Node z", "", "", GH_ParamAccess.list);
             pManager.AddCurveParameter("new lines", "lines", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("Disp matrix", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Beam Forces", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -93,12 +94,13 @@ namespace FEM3D.Components
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
             LA.Matrix<double> nodalForces = globalK.Multiply(displacements);
 
+            GetBeamForces(displacements, elements, out LA.Matrix<double> beamForces);
 
             List<string> dispList = new List<string>();
 
             for (int i = 0; i < dof; i = i + 6)
             {
-                var nodeDisp = "{" + displacements[i, 0] + ", " + displacements[i + 1, 0] + ", " + displacements[i + 2, 0] +
+                var nodeDisp = "{" + displacements[i, 0] + ", " + displacements[i + 1, 0] + ", " + displacements[i + 2, 0] + ", "+
                     displacements[i + 3, 0] + ", " + displacements[i + 4, 0] + ", " + displacements[i + 5, 0] + ", " + "}";
                 dispList.Add(nodeDisp);
             }
@@ -135,6 +137,7 @@ namespace FEM3D.Components
             //List<NurbsCurve> lineList1 = new List<NurbsCurve>();
             getNewGeometry(scale, displacements, elements, out List<NurbsCurve> lineList1);
 
+
             //DA.SetData(0, item);
             DA.SetData(1, globalK);
             DA.SetData(2, globalKsup);
@@ -144,6 +147,7 @@ namespace FEM3D.Components
             DA.SetDataList(6, dispNode);
             DA.SetDataList(7, lineList1);
             DA.SetData(8, dispMatrix);
+            DA.SetData(9, beamForces);
         }
 
 
@@ -188,36 +192,7 @@ namespace FEM3D.Components
 
                 Vector3d sV2 = new Vector3d((eP.X - sP.X), Y2 - Y1, eP.Z - sP.Z);
                 v2 = v2 + sV2;
-                /*
-                if (beam.StartNode.RyBC == true && beam.StartNode.RzBC == true)
-                {
-                    Vector3d sV1 = new Vector3d((X2 - X1), Y2 - Y1, Z2 - Z1);
-                    //scale1 = 0;
-                    //sV1.Rotate(r1 * scale1, yVec);
-                    v1 = v1 + sV1;
-                }
-                else if ((beam.StartNode.RyBC == true && beam.StartNode.RzBC == false))
-                {
-                    Vector3d sV1 = new Vector3d((eP.X - sP.X), eP.Y - sP.Y, eP.Z - sP.Z);
-                    //  sV1.Rotate(r1 * scale1, yVec);
-                    v1 = v1 + sV1;
-                }
-
-                if (beam.EndNode.RyBC == true)
-                {
-                    Vector3d sV2 = new Vector3d((X2 - X1), Y2 - Y1, Z2 - Z1);
-                    //scale2 = 0;
-                    //sV2.Rotate(r2 * scale2, yVec);
-                    v2 = v2 + sV2;
-                }
-                else
-                {
-                    Vector3d sV2 = new Vector3d((eP.X - sP.X), Y2 - Y1, eP.Z - sP.Z);
-                    // sV2.Rotate(r2 * scale2, yVec);
-                    v2 = v2 + sV2;
-                }
                 
-                */
                 List<Point3d> pts = new List<Point3d>() { sP, eP };
                 NurbsCurve nc = NurbsCurve.CreateHSpline(pts, sV1, sV2);
                 linelist3.Add(nc);
@@ -225,7 +200,45 @@ namespace FEM3D.Components
             lineList = linelist3;
         }
 
+        void GetBeamForces(LA.Matrix<double> displacements, List<BeamElement> elements, out LA.Matrix<double> beamForces0)
+        {
 
+            int dof = 12;
+            int i = 6;
+            int j = 0;
+            LA.Matrix<double> beamDisp = LA.Matrix<double>.Build.Dense(dof, elements.Count);
+
+            foreach (BeamElement beam in elements)
+            {
+                LA.Matrix<double> beamDispEl = LA.Matrix<double>.Build.Dense(dof, 1);
+
+                int startId = beam.StartNode.GlobalID;
+                beamDispEl[0, 0] = displacements[startId * i,     0];
+                beamDispEl[1, 0] = displacements[startId * i + 1, 0];
+                beamDispEl[2, 0] = displacements[startId * i + 2, 0];
+                beamDispEl[3, 0] = displacements[startId * i + 3, 0];
+                beamDispEl[4, 0] = displacements[startId * i + 4, 0];
+                beamDispEl[5, 0] = displacements[startId * i + 5, 0];
+
+                int endId = beam.EndNode.GlobalID;
+                beamDispEl[6, 0] =  displacements[endId * i,     0];
+                beamDispEl[7, 0] =  displacements[endId * i + 1, 0];
+                beamDispEl[8, 0] =  displacements[endId * i + 2, 0];
+                beamDispEl[9, 0] =  displacements[endId * i + 3, 0];
+                beamDispEl[10, 0] = displacements[endId * i + 4, 0];
+                beamDispEl[11, 0] = displacements[endId * i + 5, 0];
+
+                Matrices mat = new Matrices();
+                LA.Matrix<double> beamDispT = mat.TransformVec(beamDispEl, beam.StartNode.Point.X, beam.EndNode.Point.X, beam.StartNode.Point.Y, beam.EndNode.Point.Y, beam.StartNode.Point.Z, beam.EndNode.Point.Z, beam.Length);
+                LA.Matrix<double> bf = beam.kel.Multiply(beamDispT);
+                beam.ForceList = mat.GetForceList(bf);
+                beamDisp.SetSubMatrix(0, dof, j, 1, bf);
+                j++;
+            }
+
+            beamForces0 = beamDisp;
+
+        }
 
 
 
