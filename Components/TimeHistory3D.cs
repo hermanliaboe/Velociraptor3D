@@ -8,12 +8,12 @@ using FEM3D.Classes;
 
 namespace FEM3D.Components
 {
-    public class TimeHistory : GH_Component
+    public class TimeHistory3D : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the TimeHistory class.
         /// </summary>
-        public TimeHistory()
+        public TimeHistory3D()
           : base("TimeHistory", "Nickname",
               "Description",
               "Masters3D", "FEM3D")
@@ -55,7 +55,7 @@ namespace FEM3D.Components
 
             for (int i = 0; i < displacementsDOF.ColumnCount; i++)
             {
-                displacementsPlot.Add(displacementsDOF[nodePlot.GlobalID * 3 + dof, i]);
+                displacementsPlot.Add(displacementsDOF[nodePlot.GlobalID * 6 + dof, i]);
             }
 
             DA.SetDataList(0, displacementsPlot);
