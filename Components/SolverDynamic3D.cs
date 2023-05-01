@@ -126,6 +126,7 @@ namespace FEM3D.Components
                 nodalForces.SetSubMatrix(0, i, globalK.Multiply(displacements.SubMatrix(0, dof, i, 1)));
             }
 
+            
             var eigs = EigenValues(globalKsup, globalConsistentMsup);
             var natFreq = LA.Matrix<double>.Build.Dense(1, eigs.ColumnCount, 0);
             // Sort the natFreq matrix from smallest to largest using an array

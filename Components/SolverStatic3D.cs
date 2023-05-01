@@ -48,7 +48,6 @@ namespace FEM3D.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("item", "item", "item", GH_ParamAccess.item);
             pManager.AddGenericParameter("global K", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("global Ksup", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("force Vec", "", "", GH_ParamAccess.item);
@@ -139,15 +138,15 @@ namespace FEM3D.Components
 
 
             //DA.SetData(0, item);
-            DA.SetData(1, globalK);
-            DA.SetData(2, globalKsup);
-            DA.SetData(3, forceVec);
-            DA.SetData(4, displacements);
-            DA.SetDataList(5, dispList);
-            DA.SetDataList(6, dispNode);
-            DA.SetDataList(7, lineList1);
-            DA.SetData(8, dispMatrix);
-            DA.SetData(9, beamForces);
+            DA.SetData(0, CreateRhinoMatrix(globalK));
+            DA.SetData(1, globalKsup);
+            DA.SetData(2, forceVec);
+            DA.SetData(3, displacements);
+            DA.SetDataList(4, dispList);
+            DA.SetDataList(5, dispNode);
+            DA.SetDataList(6, lineList1);
+            DA.SetData(7, dispMatrix);
+            DA.SetData(8, beamForces);
         }
 
 
@@ -200,6 +199,19 @@ namespace FEM3D.Components
             lineList = linelist3;
         }
 
+        public Rhino.Geometry.Matrix CreateRhinoMatrix(LA.Matrix<double> matrix)
+        {
+            Rhino.Geometry.Matrix rhinoMatrix = new Rhino.Geometry.Matrix(matrix.RowCount, matrix.ColumnCount);
+            for (int i = 0; i < matrix.RowCount; i++)
+            {
+                for (int j = 0; j < matrix.ColumnCount; j++)
+                {
+                    rhinoMatrix[i, j] = matrix[i, j];
+                }
+            }
+            return rhinoMatrix;
+        }
+
         void GetBeamForces(LA.Matrix<double> displacements, List<BeamElement> elements, out LA.Matrix<double> beamForces0)
         {
 
@@ -229,9 +241,10 @@ namespace FEM3D.Components
                 beamDispEl[11, 0] = displacements[endId * i + 5, 0];
 
                 Matrices mat = new Matrices();
-                LA.Matrix<double> beamDispT = mat.TransformVec(beamDispEl, beam.StartNode.Point.X, beam.EndNode.Point.X, beam.StartNode.Point.Y, beam.EndNode.Point.Y, beam.StartNode.Point.Z, beam.EndNode.Point.Z, beam.Length);
+                LA.Matrix<double> beamDispT = mat.TransformVec(beamDispEl, beam);
                 LA.Matrix<double> bf = beam.kel.Multiply(beamDispT);
                 beam.ForceList = mat.GetForceList(bf);
+                beam.SetDisplacementList(beamDispT);
                 beamDisp.SetSubMatrix(0, dof, j, 1, bf);
                 j++;
             }

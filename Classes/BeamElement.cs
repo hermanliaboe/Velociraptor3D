@@ -25,14 +25,31 @@ namespace FEM3D.Classes
         public double ShearMod;
         public LA.Matrix<double> kel;
         public List<double> ForceList;
+        public List<double> LocalDisp;
+        public Vector3d xl;
+        public Vector3d yl;
+        public Vector3d zl;
 
         public BeamElement() { }
 
-        public BeamElement(int id, Line line)
+        public BeamElement(int id, Line line, Vector3d xl, Vector3d yl, Vector3d zl)
         {
             this.Id = id;
             this.Line = line;
             this.Length = GetElementLength(line);
+            this.xl = xl;
+            this.yl = yl;
+            this.zl = zl;
+        }
+
+        public void SetDisplacementList(LA.Matrix<double> disp)
+        {
+            List<double> dispList = new List<double>();
+            for (int i = 0; i < disp.RowCount; i++)
+            {
+                dispList.Add(disp[i, 0]);
+            }
+            this.LocalDisp = dispList;
         }
 
         public double GetElementLength(Line line)

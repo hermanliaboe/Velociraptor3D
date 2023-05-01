@@ -157,31 +157,37 @@ namespace FEM3D.Classes
 
             beam.kel = kEl;
             //Creates T-matrix to adjust element to global axis
-            LA.Matrix<double> kT = TransformMatrix(kEl, x1, x2, y1, y2, z1, z2, l);
+            LA.Matrix<double> kT = TransformMatrix(kEl, beam);
             return kT;
         }
-
-        public LA.Matrix<double> TransformMatrix(LA.Matrix<double> matrix, double x1, double x2, double y1, double y2, double z1, double z2, double l)
+        /*
+        public LA.Matrix<double> TransformMatrix2(LA.Matrix<double> matrix, BeamElement beam)
         {
-            var nodeA = Matrix<double>.Build.DenseOfArray(new double[,]
+            var x1 = beam.StartNode.Point.X;
+            var y1 = beam.StartNode.Point.Y;
+            var z1 = beam.StartNode.Point.Z;
+
+            var x2 = beam.EndNode.Point.X;
+            var y2 = beam.EndNode.Point.Y;
+            var z2 = beam.EndNode.Point.Z;
+
+            var u = beam.Length;
+
+
+            var xl = Matrix<double>.Build.DenseOfArray(new double[,]
             {
-                { x1, y1, z1 }
+                { (x2 - x1) / u, (y2 - y1) / u, (z2 - z1) / u }
             });
 
-            var V = Matrix<double>.Build.DenseOfArray(new double[,]
+            var yl = Matrix<double>.Build.DenseOfArray(new double[,]
             {
-                { 0, 1, 0 }
+                { beam.yl.X, beam.yl.Y, beam.yl.Z }
             });
 
-            var nodeB = Matrix<double>.Build.DenseOfArray(new double[,]
+            var zl = Matrix<double>.Build.DenseOfArray(new double[,]
             {
-                { x2, y2, z2 }
+                { beam.zl.X, beam.zl.Y, beam.zl.Z }
             });
-            var xl = (nodeB - nodeA) / l;
-            var zlNotNorm = CrossProduct(xl, V);
-            var zl = zlNotNorm.NormalizeRows(2);
-            var ylNotNorm = CrossProduct(zl, xl);
-            var yl = ylNotNorm.NormalizeRows(2);
 
             //now set submatrices and stuff
             var gamma = LA.Matrix<double>.Build.Dense(3, 3, 0);
@@ -202,28 +208,61 @@ namespace FEM3D.Classes
             return tmt;
 
         }
+        */
 
-        public LA.Matrix<double> TransformVec(LA.Matrix<double> matrix, double x1, double x2, double y1, double y2, double z1, double z2, double l)
+        public LA.Matrix<double> TransformMatrix(LA.Matrix<double> matrix, BeamElement beam)
         {
-            var nodeA = Matrix<double>.Build.DenseOfArray(new double[,]
+            var xl = Matrix<double>.Build.DenseOfArray(new double[,]
             {
-                { x1, y1, z1 }
+                { beam.xl.X, beam.xl.Y, beam.xl.Z }
             });
 
-            var V = Matrix<double>.Build.DenseOfArray(new double[,]
+            var yl = Matrix<double>.Build.DenseOfArray(new double[,]
             {
-                { 0, 1, 0 }
+                { beam.yl.X, beam.yl.Y, beam.yl.Z }
             });
 
-            var nodeB = Matrix<double>.Build.DenseOfArray(new double[,]
+            var zl = Matrix<double>.Build.DenseOfArray(new double[,]
             {
-                { x2, y2, z2 }
+                { beam.zl.X, beam.zl.Y, beam.zl.Z }
             });
-            var xl = (nodeB - nodeA) / l;
-            var zlNotNorm = CrossProduct(xl, V);
-            var zl = zlNotNorm.NormalizeRows(2);
-            var ylNotNorm = CrossProduct(zl, xl);
-            var yl = ylNotNorm.NormalizeRows(2);
+            
+            //now set submatrices and stuff
+            var gamma = LA.Matrix<double>.Build.Dense(3, 3, 0);
+            gamma.SetSubMatrix(0, 0, xl);
+            gamma.SetSubMatrix(1, 0, yl);
+            gamma.SetSubMatrix(2, 0, zl);
+
+            var T = LA.Matrix<double>.Build.Dense(12, 12, 0);
+            T.SetSubMatrix(0, 0, gamma);
+            T.SetSubMatrix(3, 3, gamma);
+            T.SetSubMatrix(6, 6, gamma);
+            T.SetSubMatrix(9, 9, gamma);
+
+            LA.Matrix<double> tT = T.Transpose();
+            LA.Matrix<double> tm = tT.Multiply(matrix);
+            LA.Matrix<double> tmt = tm.Multiply(T);
+
+            return tmt;
+
+        }
+
+        public LA.Matrix<double> TransformVec(LA.Matrix<double> matrix, BeamElement beam)
+        {
+            var xl = Matrix<double>.Build.DenseOfArray(new double[,]
+            {
+                { beam.xl.X, beam.xl.Y, beam.xl.Z }
+            });
+
+            var yl = Matrix<double>.Build.DenseOfArray(new double[,]
+            {
+                { beam.yl.X, beam.yl.Y, beam.yl.Z }
+            });
+
+            var zl = Matrix<double>.Build.DenseOfArray(new double[,]
+            {
+                { beam.zl.X, beam.zl.Y, beam.zl.Z }
+            });
 
             //now set submatrices and stuff
             var gamma = LA.Matrix<double>.Build.Dense(3, 3, 0);
@@ -385,7 +424,7 @@ namespace FEM3D.Classes
             }
 
             //Transform to global coordinates
-            LA.Matrix<double> mT = TransformMatrix(mEl, x1, x2, y1, y2, z1, z2, l);
+            LA.Matrix<double> mT = TransformMatrix(mEl, beam);
 
             return mT;
         }
@@ -486,7 +525,7 @@ namespace FEM3D.Classes
 
         public LA.Matrix<double> BuildC(LA.Matrix<double> M, LA.Matrix<double> K, double zeta, double wi, double wj)
         {
-            LA.Matrix<double> W = EigenValue(K, M);
+            //LA.Matrix<double> W = EigenValue(K, M);
             //double wi = W[0, w1];
             //double wj = W[0, w2];
 

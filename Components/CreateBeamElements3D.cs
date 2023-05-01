@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using FEM3D.Classes;
 using FEM3D.Properties;
 using Grasshopper.Kernel;
+using Grasshopper.Kernel.Geometry;
 using Rhino.Geometry;
 
 namespace FEM3D.Components
@@ -61,7 +62,32 @@ namespace FEM3D.Components
             {
                 Point3d stPt = line.From;
                 Point3d ePt = line.To;
-                BeamElement element = new BeamElement(bidc, line);
+                var lineVec = line.Direction;
+                var planeNormal = new Rhino.Geometry.Plane(stPt, lineVec);
+
+                var xl = planeNormal.ZAxis;
+                var yl = new Rhino.Geometry.Vector3d();
+
+                if (planeNormal.YAxis.Z != 0)
+                {
+                    yl = planeNormal.YAxis;
+                }
+                else
+                {
+                    yl = planeNormal.XAxis;
+                }
+
+                if (yl.Z < 0)
+                {
+                    yl.Reverse();
+                }
+
+                var zl = Rhino.Geometry.Vector3d.CrossProduct(xl, yl);
+                zl.Unitize();
+                
+
+                BeamElement element = new BeamElement(bidc, line, xl, yl, zl);
+
                 bidc++;
                 if (existingNodes.ContainsKey(stPt))
                 {
