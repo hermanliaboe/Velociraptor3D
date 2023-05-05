@@ -28,6 +28,7 @@ namespace FEM3D.Components
             pManager.AddLineParameter("Lines", "ls", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("CrossSection", "cs", "", GH_ParamAccess.item);
             pManager.AddBooleanParameter("3D", "3D", "if True 3D 12DOF element, if False 2D 6DOF element", GH_ParamAccess.item, true);
+            pManager.AddNumberParameter("Alpha", "", "Rotation about local x-axis", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -48,9 +49,11 @@ namespace FEM3D.Components
             List<Line> lines = new List<Line>();
             CrossSection cs = new CrossSection();
             bool dof = true;
+            double alpha = 0.0;
             DA.GetDataList(0, lines);
             DA.GetData(1, ref cs);
             DA.GetData(2, ref dof);
+            DA.GetData(3, ref alpha);
 
             List<BeamElement> beams = new List<BeamElement>();
             Dictionary<Point3d, Node> existingNodes = new Dictionary<Point3d, Node>();
@@ -62,6 +65,7 @@ namespace FEM3D.Components
             {
                 Point3d stPt = line.From;
                 Point3d ePt = line.To;
+                /*
                 var lineVec = line.Direction;
                 var planeNormal = new Rhino.Geometry.Plane(stPt, lineVec);
 
@@ -84,9 +88,9 @@ namespace FEM3D.Components
 
                 var zl = Rhino.Geometry.Vector3d.CrossProduct(xl, yl);
                 zl.Unitize();
-                
+                */
 
-                BeamElement element = new BeamElement(bidc, line, xl, yl, zl);
+                BeamElement element = new BeamElement(bidc, line);
 
                 bidc++;
                 if (existingNodes.ContainsKey(stPt))
@@ -118,6 +122,7 @@ namespace FEM3D.Components
                 element.YoungsMod = cs.YoungsMod;
                 element.Rho = cs.Rho;
                 element.ShearMod = cs.ShearMod;
+                element.Alpha = alpha;
                 if (dof) { element.ElDof = 12; }
                 else { element.ElDof = 6; }
                 beams.Add(element);

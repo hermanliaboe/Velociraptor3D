@@ -241,7 +241,8 @@ namespace FEM3D.Components
                 beamDispEl[11, 0] = displacements[endId * i + 5, 0];
 
                 Matrices mat = new Matrices();
-                LA.Matrix<double> beamDispT = mat.TransformVec(beamDispEl, beam);
+                LA.Matrix<double> t = mat.TransformationMatrix(beam);
+                var beamDispT = t.Multiply(beamDispEl);
                 LA.Matrix<double> bf = beam.kel.Multiply(beamDispT);
                 beam.ForceList = mat.GetForceList(bf);
                 beam.SetDisplacementList(beamDispT);

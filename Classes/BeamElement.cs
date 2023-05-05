@@ -26,20 +26,21 @@ namespace FEM3D.Classes
         public LA.Matrix<double> kel;
         public List<double> ForceList;
         public List<double> LocalDisp;
+        public double Alpha;
+
+        /*
         public Vector3d xl;
         public Vector3d yl;
         public Vector3d zl;
-
+        */
         public BeamElement() { }
 
-        public BeamElement(int id, Line line, Vector3d xl, Vector3d yl, Vector3d zl)
+        public BeamElement(int id, Line line)
         {
             this.Id = id;
             this.Line = line;
             this.Length = GetElementLength(line);
-            this.xl = xl;
-            this.yl = yl;
-            this.zl = zl;
+           
         }
 
         public void SetDisplacementList(LA.Matrix<double> disp)

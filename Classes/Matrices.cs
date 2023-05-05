@@ -157,129 +157,53 @@ namespace FEM3D.Classes
 
             beam.kel = kEl;
             //Creates T-matrix to adjust element to global axis
-            LA.Matrix<double> kT = TransformMatrix(kEl, beam);
-            return kT;
-        }
-        /*
-        public LA.Matrix<double> TransformMatrix2(LA.Matrix<double> matrix, BeamElement beam)
-        {
-            var x1 = beam.StartNode.Point.X;
-            var y1 = beam.StartNode.Point.Y;
-            var z1 = beam.StartNode.Point.Z;
-
-            var x2 = beam.EndNode.Point.X;
-            var y2 = beam.EndNode.Point.Y;
-            var z2 = beam.EndNode.Point.Z;
-
-            var u = beam.Length;
-
-
-            var xl = Matrix<double>.Build.DenseOfArray(new double[,]
-            {
-                { (x2 - x1) / u, (y2 - y1) / u, (z2 - z1) / u }
-            });
-
-            var yl = Matrix<double>.Build.DenseOfArray(new double[,]
-            {
-                { beam.yl.X, beam.yl.Y, beam.yl.Z }
-            });
-
-            var zl = Matrix<double>.Build.DenseOfArray(new double[,]
-            {
-                { beam.zl.X, beam.zl.Y, beam.zl.Z }
-            });
-
-            //now set submatrices and stuff
-            var gamma = LA.Matrix<double>.Build.Dense(3, 3, 0);
-            gamma.SetSubMatrix(0, 0, xl);
-            gamma.SetSubMatrix(1, 0, yl);
-            gamma.SetSubMatrix(2, 0, zl);
-
-            var T = LA.Matrix<double>.Build.Dense(12, 12, 0);
-            T.SetSubMatrix(0, 0, gamma);
-            T.SetSubMatrix(3, 3, gamma);
-            T.SetSubMatrix(6, 6, gamma);
-            T.SetSubMatrix(9, 9, gamma);
-
+            LA.Matrix<double> T = TransformationMatrix(beam);
             LA.Matrix<double> tT = T.Transpose();
-            LA.Matrix<double> tm = tT.Multiply(matrix);
-            LA.Matrix<double> tmt = tm.Multiply(T);
-
-            return tmt;
-
-        }
-        */
-
-        public LA.Matrix<double> TransformMatrix(LA.Matrix<double> matrix, BeamElement beam)
-        {
-            var xl = Matrix<double>.Build.DenseOfArray(new double[,]
-            {
-                { beam.xl.X, beam.xl.Y, beam.xl.Z }
-            });
-
-            var yl = Matrix<double>.Build.DenseOfArray(new double[,]
-            {
-                { beam.yl.X, beam.yl.Y, beam.yl.Z }
-            });
-
-            var zl = Matrix<double>.Build.DenseOfArray(new double[,]
-            {
-                { beam.zl.X, beam.zl.Y, beam.zl.Z }
-            });
-            
-            //now set submatrices and stuff
-            var gamma = LA.Matrix<double>.Build.Dense(3, 3, 0);
-            gamma.SetSubMatrix(0, 0, xl);
-            gamma.SetSubMatrix(1, 0, yl);
-            gamma.SetSubMatrix(2, 0, zl);
-
-            var T = LA.Matrix<double>.Build.Dense(12, 12, 0);
-            T.SetSubMatrix(0, 0, gamma);
-            T.SetSubMatrix(3, 3, gamma);
-            T.SetSubMatrix(6, 6, gamma);
-            T.SetSubMatrix(9, 9, gamma);
-
-            LA.Matrix<double> tT = T.Transpose();
-            LA.Matrix<double> tm = tT.Multiply(matrix);
-            LA.Matrix<double> tmt = tm.Multiply(T);
-
-            return tmt;
-
+            LA.Matrix<double> tTk = tT.Multiply(kEl);
+            LA.Matrix<double> tTkt = tTk.Multiply(T);
+            return tTkt;
         }
 
-        public LA.Matrix<double> TransformVec(LA.Matrix<double> matrix, BeamElement beam)
+        public LA.Matrix<double> TransformationMatrix(BeamElement beam)
         {
-            var xl = Matrix<double>.Build.DenseOfArray(new double[,]
+
+            var p1 = beam.Line.From;
+            var p2 = beam.Line.To;
+
+            double alpha = beam.Alpha;
+
+            double l = beam.Length;
+
+            double cx = (p2.X - p1.X) / l;
+            double cy = (p2.Y - p1.Y) / l;
+            double cz = (p2.Z - p1.Z) / l;
+
+            double c1 = Math.Cos(alpha);
+            double s1 = Math.Sin(alpha);
+            double cxz = Math.Round(Math.Sqrt(Math.Pow(cx, 2.0) + Math.Pow(cz, 2.0)), 6);
+
+            Matrix<double> t;
+            if (Math.Round(cx, 6) == 0 && Math.Round(cz, 6) == 0)
             {
-                { beam.xl.X, beam.xl.Y, beam.xl.Z }
-            });
-
-            var yl = Matrix<double>.Build.DenseOfArray(new double[,]
+                t = Matrix<double>.Build.DenseOfArray(new double[,] {
+                    { 0, cy, 0},
+                    { -cy*c1, 0, s1},
+                    { cy*s1, 0, c1}
+                });
+            }
+            else 
             {
-                { beam.yl.X, beam.yl.Y, beam.yl.Z }
-            });
+                t = Matrix<double>.Build.DenseOfArray(new double[,] {
+                    { cx, cy, cz},
+                    { (-cx*cy*c1 - cz*s1) / cxz, cxz*c1, (-cy*cz*c1 + cx*s1) / cxz},
+                    { (cx*cy*s1 - cz*c1) / cxz, -cxz*s1, (cy*cz*s1 + cx*c1) / cxz}
+                });
+            }
 
-            var zl = Matrix<double>.Build.DenseOfArray(new double[,]
-            {
-                { beam.zl.X, beam.zl.Y, beam.zl.Z }
-            });
+            var T = t.DiagonalStack(t);
+            T = T.DiagonalStack(T);
 
-            //now set submatrices and stuff
-            var gamma = LA.Matrix<double>.Build.Dense(3, 3, 0);
-            gamma.SetSubMatrix(0, 0, xl);
-            gamma.SetSubMatrix(1, 0, yl);
-            gamma.SetSubMatrix(2, 0, zl);
-
-            var T = LA.Matrix<double>.Build.Dense(12, 12, 0);
-            T.SetSubMatrix(0, 0, gamma);
-            T.SetSubMatrix(3, 3, gamma);
-            T.SetSubMatrix(6, 6, gamma);
-            T.SetSubMatrix(9, 9, gamma);
-
-            // LA.Matrix<double> tT = T.Transpose();
-            LA.Matrix<double> tm = T.Multiply(matrix);
-
-            return tm;
+            return T;
 
         }
 
@@ -424,9 +348,12 @@ namespace FEM3D.Classes
             }
 
             //Transform to global coordinates
-            LA.Matrix<double> mT = TransformMatrix(mEl, beam);
 
-            return mT;
+            LA.Matrix<double> T = TransformationMatrix(beam);
+            LA.Matrix<double> tT = T.Transpose();
+            LA.Matrix<double> tTm = tT.Multiply(mEl);
+            LA.Matrix<double> tTmt = tTm.Multiply(T);
+            return tTmt;
         }
         public LA.Matrix<double> BuildGlobalM(int dof, List<BeamElement> elements, bool lumped)
         {
