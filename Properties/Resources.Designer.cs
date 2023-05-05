@@ -113,6 +113,16 @@ namespace FEM3D.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap edgeindex {
+            get {
+                object obj = ResourceManager.GetObject("edgeindex", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Load__1_ {
             get {
                 object obj = ResourceManager.GetObject("Load (1)", resourceCulture);
