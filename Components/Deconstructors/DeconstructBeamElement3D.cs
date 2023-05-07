@@ -47,6 +47,9 @@ namespace FEM3D.Components.Deconstructors
             pManager.AddNumberParameter("Forces", "F", "", GH_ParamAccess.list);
             pManager.AddNumberParameter("Local Displacements", "", "List of element displacements in local coordinate system.", GH_ParamAccess.list);
             pManager.AddGenericParameter("Kel", "", "", GH_ParamAccess.item);
+            pManager.AddVectorParameter("xl", "", "", GH_ParamAccess.item);
+            pManager.AddVectorParameter("yl", "", "", GH_ParamAccess.item);
+            pManager.AddVectorParameter("zl", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -71,6 +74,9 @@ namespace FEM3D.Components.Deconstructors
             DA.SetDataList(10, beam.ForceList);
             DA.SetDataList(11, beam.LocalDisp);
             DA.SetData(12, beam.kel);
+            DA.SetData(13, beam.xl);
+            DA.SetData(14, beam.yl);
+            DA.SetData(15, beam.zl);
           
         }
 

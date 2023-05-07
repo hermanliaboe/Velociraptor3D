@@ -65,32 +65,41 @@ namespace FEM3D.Components
             {
                 Point3d stPt = line.From;
                 Point3d ePt = line.To;
-                /*
+                
                 var lineVec = line.Direction;
                 var planeNormal = new Rhino.Geometry.Plane(stPt, lineVec);
 
                 var xl = planeNormal.ZAxis;
-                var yl = new Rhino.Geometry.Vector3d();
+                var zl = new Rhino.Geometry.Vector3d();
+                var unitZ = new Vector3d(0, 0, 1);
 
-                if (planeNormal.YAxis.Z != 0)
+                var dotYunitZ = Rhino.Geometry.Vector3d.Multiply(unitZ, planeNormal.YAxis);
+                var dotXunitZ = Rhino.Geometry.Vector3d.Multiply(unitZ, planeNormal.XAxis);
+
+                if (dotYunitZ != 0)
                 {
-                    yl = planeNormal.YAxis;
+                    zl = planeNormal.YAxis;
                 }
+
                 else
                 {
-                    yl = planeNormal.XAxis;
+                    zl = planeNormal.XAxis;
                 }
-
-                if (yl.Z < 0)
+                
+                if (zl.Z <  0)
                 {
-                    yl.Reverse();
+                    zl.Reverse();
                 }
 
-                var zl = Rhino.Geometry.Vector3d.CrossProduct(xl, yl);
-                zl.Unitize();
-                */
+                var yl = Rhino.Geometry.Vector3d.CrossProduct(xl, zl);
+                yl.Unitize();
+                yl.Reverse();
 
                 BeamElement element = new BeamElement(bidc, line);
+
+                element.xl = xl;
+                element.yl = yl;
+                element.zl = zl;
 
                 bidc++;
                 if (existingNodes.ContainsKey(stPt))

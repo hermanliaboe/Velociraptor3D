@@ -26,7 +26,11 @@ namespace FEM3D.Classes
         public LA.Matrix<double> kel;
         public List<double> ForceList;
         public List<double> LocalDisp;
+        public List<double> GlobalDisp;
         public double Alpha;
+        public Vector3d xl;
+        public Vector3d yl;
+        public Vector3d zl;
 
         /*
         public Vector3d xl;
@@ -43,7 +47,7 @@ namespace FEM3D.Classes
            
         }
 
-        public void SetDisplacementList(LA.Matrix<double> disp)
+        public void SetLocalDisplacementList(LA.Matrix<double> disp)
         {
             List<double> dispList = new List<double>();
             for (int i = 0; i < disp.RowCount; i++)
@@ -51,6 +55,16 @@ namespace FEM3D.Classes
                 dispList.Add(disp[i, 0]);
             }
             this.LocalDisp = dispList;
+        }
+
+        public void SetGlobalDisplacementList(LA.Matrix<double> disp)
+        {
+            List<double> dispList = new List<double>();
+            for (int i = 0; i < disp.RowCount; i++)
+            {
+                dispList.Add(disp[i, 0]);
+            }
+            this.GlobalDisp = dispList;
         }
 
         public double GetElementLength(Line line)

@@ -57,6 +57,7 @@ namespace FEM3D.Components
             pManager.AddCurveParameter("new lines", "lines", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("Disp matrix", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Beam Forces", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Forces list, K*u", "", "", GH_ParamAccess.list );
         }
 
         /// <summary>
@@ -89,8 +90,10 @@ namespace FEM3D.Components
             LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements);
             LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
             LA.Matrix<double> forceVec = matrices.BuildForceVector(loads, dof);
-
+            //var cholesky = globalKsup.Cholesky();
+            //LA.Matrix<double> displacements = cholesky.Solve(forceVec);
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
+            var reactions = globalK.Multiply(displacements);
             LA.Matrix<double> nodalForces = globalK.Multiply(displacements);
 
             GetBeamForces(displacements, elements, out LA.Matrix<double> beamForces);
@@ -99,9 +102,22 @@ namespace FEM3D.Components
 
             for (int i = 0; i < dof; i = i + 6)
             {
-                var nodeDisp = "{" + displacements[i, 0] + ", " + displacements[i + 1, 0] + ", " + displacements[i + 2, 0] + ", "+
-                    displacements[i + 3, 0] + ", " + displacements[i + 4, 0] + ", " + displacements[i + 5, 0] + ", " + "}";
+                var nodeDisp = "{" + Math.Round(displacements[i, 0], 6) + ", " + 
+                    Math.Round(displacements[i + 1, 0], 6) + ", " + 
+                    Math.Round(displacements[i + 2, 0], 6) + ", " + 
+                    Math.Round(displacements[i + 3, 0], 6) + ", " + 
+                    Math.Round(displacements[i + 4, 0], 6) + ", " + 
+                    Math.Round(displacements[i + 5, 0], 6) + "}";
                 dispList.Add(nodeDisp);
+            }
+
+            List<string> reactionsList = new List<string>();
+
+            for (int i = 0; i < dof; i = i + 6)
+            {
+                var nodalForcesGlob = "{" + reactions[i, 0] + ", " + reactions[i + 1, 0] + ", " + reactions[i + 2, 0] + ", " +
+                    reactions[i + 3, 0] + ", " + reactions[i + 4, 0] + ", " + reactions[i + 5, 0] + "}";
+                reactionsList.Add(nodalForcesGlob);
             }
 
             Rhino.Geometry.Matrix dispMatrix = new Rhino.Geometry.Matrix(dof/6, 6);
@@ -147,6 +163,7 @@ namespace FEM3D.Components
             DA.SetDataList(6, lineList1);
             DA.SetData(7, dispMatrix);
             DA.SetData(8, beamForces);
+            DA.SetDataList(9, reactionsList);
         }
 
 
@@ -218,39 +235,39 @@ namespace FEM3D.Components
             int dof = 12;
             int i = 6;
             int j = 0;
-            LA.Matrix<double> beamDisp = LA.Matrix<double>.Build.Dense(dof, elements.Count);
+            LA.Matrix<double> beamForceMat = LA.Matrix<double>.Build.Dense(dof, elements.Count);
 
             foreach (BeamElement beam in elements)
             {
                 LA.Matrix<double> beamDispEl = LA.Matrix<double>.Build.Dense(dof, 1);
 
                 int startId = beam.StartNode.GlobalID;
-                beamDispEl[0, 0] = displacements[startId * i,     0];
-                beamDispEl[1, 0] = displacements[startId * i + 1, 0];
-                beamDispEl[2, 0] = displacements[startId * i + 2, 0];
-                beamDispEl[3, 0] = displacements[startId * i + 3, 0];
-                beamDispEl[4, 0] = displacements[startId * i + 4, 0];
-                beamDispEl[5, 0] = displacements[startId * i + 5, 0];
+                beamDispEl[0, 0] = Math.Round(displacements[startId * i,     0], 6);
+                beamDispEl[1, 0] = Math.Round(displacements[startId * i + 1, 0], 6);
+                beamDispEl[2, 0] = Math.Round(displacements[startId * i + 2, 0], 6);
+                beamDispEl[3, 0] = Math.Round(displacements[startId * i + 3, 0], 6);
+                beamDispEl[4, 0] = Math.Round(displacements[startId * i + 4, 0], 6);
+                beamDispEl[5, 0] = Math.Round(displacements[startId * i + 5, 0], 6);
 
                 int endId = beam.EndNode.GlobalID;
-                beamDispEl[6, 0] =  displacements[endId * i,     0];
-                beamDispEl[7, 0] =  displacements[endId * i + 1, 0];
-                beamDispEl[8, 0] =  displacements[endId * i + 2, 0];
-                beamDispEl[9, 0] =  displacements[endId * i + 3, 0];
-                beamDispEl[10, 0] = displacements[endId * i + 4, 0];
-                beamDispEl[11, 0] = displacements[endId * i + 5, 0];
+                beamDispEl[6, 0] = Math.Round(displacements[endId * i,     0], 6);
+                beamDispEl[7, 0] = Math.Round(displacements[endId * i + 1, 0], 6);
+                beamDispEl[8, 0] = Math.Round(displacements[endId * i + 2, 0], 6);
+                beamDispEl[9, 0] = Math.Round(displacements[endId * i + 3, 0], 6);
+                beamDispEl[10, 0] = Math.Round(displacements[endId * i + 4, 0], 6);
+                beamDispEl[11, 0] = Math.Round(displacements[endId * i + 5, 0], 6);
 
                 Matrices mat = new Matrices();
                 LA.Matrix<double> t = mat.TransformationMatrix(beam);
                 var beamDispT = t.Multiply(beamDispEl);
                 LA.Matrix<double> bf = beam.kel.Multiply(beamDispT);
                 beam.ForceList = mat.GetForceList(bf);
-                beam.SetDisplacementList(beamDispT);
-                beamDisp.SetSubMatrix(0, dof, j, 1, bf);
+                beam.SetLocalDisplacementList(beamDispT);
+                beamForceMat.SetSubMatrix(0, dof, j, 1, bf);
                 j++;
             }
 
-            beamForces0 = beamDisp;
+            beamForces0 = beamForceMat;
 
         }
 

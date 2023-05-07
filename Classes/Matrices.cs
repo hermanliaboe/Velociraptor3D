@@ -2,6 +2,7 @@
 using GH_IO.Serialization;
 using MathNet.Numerics.LinearAlgebra;
 using Rhino.Display;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -163,42 +164,79 @@ namespace FEM3D.Classes
             LA.Matrix<double> tTkt = tTk.Multiply(T);
             return tTkt;
         }
+       
+        //public LA.Matrix<double> TransformationMatrix(BeamElement beam)
+        //{
+            
+        //    var p1 = beam.Line.From;
+        //    var p2 = beam.Line.To;
+
+        //    double alpha = beam.Alpha;
+
+        //    double l = beam.Length;
+
+        //    double cx = (p2.X - p1.X) / l;
+        //    double cy = (p2.Y - p1.Y) / l;
+        //    double cz = (p2.Z - p1.Z) / l;
+
+        //    double c1 = Math.Cos(alpha);
+        //    double s1 = Math.Sin(alpha);
+        //    double cxz = Math.Round(Math.Sqrt(Math.Pow(cx, 2.0) + Math.Pow(cz, 2.0)), 6);
+
+        //    LA.Matrix<double> t;
+
+        //    if (Math.Round(cx, 6) == 0.0 && Math.Round(cz, 6) == 0.0)
+        //    {
+        //        var xl = new Vector3d(0, cy, 0);
+        //        var yl = new Vector3d(-cy * c1, 0, s1);
+        //        var zl = new Vector3d(cy * s1, 0, c1);
+
+        //        beam.xl = xl; beam.yl = yl; beam.zl = zl;
+
+        //        t = LA.Matrix<double>.Build.DenseOfArray(new double[,] {
+        //            { 0, cy, 0},
+        //            { -cy*c1, 0, s1},
+        //            { cy*s1, 0, c1}
+        //        });
+        //    }
+        //    else 
+        //    {
+        //        var xl = new Vector3d(cx, cy, cz);
+        //        var yl = new Vector3d((-cx * cy * c1 - cz * s1) / cxz, cxz * c1, (-cy * cz * c1 + cx * s1) / cxz);
+        //        var zl = new Vector3d((cx * cy * s1 - cz * c1) / cxz, -cxz * s1, (cy * cz * s1 + cx * c1) / cxz);
+
+        //        beam.xl = xl; beam.yl = yl; beam.zl = zl;
+
+        //        t = LA.Matrix<double>.Build.DenseOfArray(new double[,] {
+        //            { cx, cy, cz},
+        //            { (-cx*cy*c1 - cz*s1) / cxz, cxz*c1, (-cy*cz*c1 + cx*s1) / cxz},
+        //            { (cx*cy*s1 - cz*c1) / cxz, -cxz*s1, (cy*cz*s1 + cx*c1) / cxz}
+        //        });
+        //    }
+
+        //    var T = t.DiagonalStack(t);
+        //    T = T.DiagonalStack(T);
+
+        //    return T;
+
+        //}
+
 
         public LA.Matrix<double> TransformationMatrix(BeamElement beam)
         {
 
-            var p1 = beam.Line.From;
-            var p2 = beam.Line.To;
+            var xl = beam.xl; var yl = beam.yl; var zl = beam.zl;
 
-            double alpha = beam.Alpha;
+            LA.Matrix<double> t;
 
-            double l = beam.Length;
 
-            double cx = (p2.X - p1.X) / l;
-            double cy = (p2.Y - p1.Y) / l;
-            double cz = (p2.Z - p1.Z) / l;
+            t = LA.Matrix<double>.Build.DenseOfArray(new double[,] {
+                { xl.X, xl.Y, xl.Z},
+                { yl.X, yl.Y, yl.Z},
+                { zl.X, zl.Y, zl.Z}
+            });
 
-            double c1 = Math.Cos(alpha);
-            double s1 = Math.Sin(alpha);
-            double cxz = Math.Round(Math.Sqrt(Math.Pow(cx, 2.0) + Math.Pow(cz, 2.0)), 6);
 
-            Matrix<double> t;
-            if (Math.Round(cx, 6) == 0 && Math.Round(cz, 6) == 0)
-            {
-                t = Matrix<double>.Build.DenseOfArray(new double[,] {
-                    { 0, cy, 0},
-                    { -cy*c1, 0, s1},
-                    { cy*s1, 0, c1}
-                });
-            }
-            else 
-            {
-                t = Matrix<double>.Build.DenseOfArray(new double[,] {
-                    { cx, cy, cz},
-                    { (-cx*cy*c1 - cz*s1) / cxz, cxz*c1, (-cy*cz*c1 + cx*s1) / cxz},
-                    { (cx*cy*s1 - cz*c1) / cxz, -cxz*s1, (cy*cz*s1 + cx*c1) / cxz}
-                });
-            }
 
             var T = t.DiagonalStack(t);
             T = T.DiagonalStack(T);
@@ -206,6 +244,7 @@ namespace FEM3D.Classes
             return T;
 
         }
+
 
         public List<double> GetForceList(LA.Matrix<double> forces)
         {
