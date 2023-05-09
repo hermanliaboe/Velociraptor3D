@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
 using FEM3D.Classes;
@@ -31,6 +32,8 @@ namespace FEM3D.Components
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
+            double n = 0.0;
+            pManager.AddGenericParameter("Beams", "beams", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("Displacement - Velo", "Disp-Velo", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Beam Forces - Velo", "Forces-Velo", "", GH_ParamAccess.item);
 
@@ -43,8 +46,8 @@ namespace FEM3D.Components
             pManager.AddGenericParameter("Mt - Kara", "Mt-Kara", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("My - Kara", "My-Kara", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("Mz - Kara", "Mz-Velo", "", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Node chooser", "Node N", "", GH_ParamAccess.item, 0);
-            pManager.AddNumberParameter("Beam chooser", "beam N", "", GH_ParamAccess.item, 0);
+
+            pManager.AddNumberParameter("Beam chooser", "beam n", "", GH_ParamAccess.item, n);
 
         }
 
@@ -53,10 +56,16 @@ namespace FEM3D.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Error Displacements", "eDisp", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Error Forces", "eForce", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Beam Disp", "", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Beam Force", "", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Error Displacements AVG", "eDisp", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Error Forces AVG", "eForce", "", GH_ParamAccess.list);
+
+            pManager.AddGenericParameter("Error Force Beam n", "", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Velociraptor Beam n", "", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Karamba Beam n", "", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Full error force n", "", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Full error node n", "", "", GH_ParamAccess.list);
+
+
         }
 
         /// <summary>
@@ -65,6 +74,7 @@ namespace FEM3D.Components
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            List<BeamElement> beams = new List<BeamElement>();
             LA.Double.DenseMatrix dispV = new LA.Double.DenseMatrix(2);
             LA.Double.DenseMatrix bfV = new LA.Double.DenseMatrix(2);
             List<string> transK = new List<string>();
@@ -75,23 +85,24 @@ namespace FEM3D.Components
             List<double> mtK = new List<double>();
             List<double> myK = new List<double>();
             List<double> mzK = new List<double>();
-            int nN = 0;
-            int bN = 0;
+            double nN0 = 0.0;
+            double bN0 = 0.0;
 
-            DA.GetData(0, ref dispV);
-            DA.GetData(1, ref bfV);
-            DA.GetDataList(2, transK);
-            DA.GetDataList(3, rotK);
+            DA.GetDataList(0, beams);
+            DA.GetData(1, ref dispV);
+            DA.GetData(2, ref bfV);
+            DA.GetDataList(3, transK);
+            DA.GetDataList(4, rotK);
            
-            DA.GetDataList(4, nK);
-            DA.GetDataList(5, vyK);
-            DA.GetDataList(6, vzK);
-            DA.GetDataList(7, mtK);
-            DA.GetDataList(8, myK);
-            DA.GetDataList(9, mzK);
-            DA.GetData(10, ref nN);
-            DA.GetData(11, ref bN);
+            DA.GetDataList(5, nK);
+            DA.GetDataList(6, vyK);
+            DA.GetDataList(7, vzK);
+            DA.GetDataList(8, mtK);
+            DA.GetDataList(9, myK);
+            DA.GetDataList(10, mzK);
+            DA.GetData(11, ref bN0);
 
+            int bN = ((int)bN0);
 
             //Create displacement list for Karamaba
             List<double> dispK = new List<double>();
@@ -167,6 +178,16 @@ namespace FEM3D.Components
 
 
             //Forces
+            /*
+            List<double> eNl  = new List<double>();
+            List<double> eVyl = new List<double>();
+            List<double> eVzl = new List<double>();
+            List<double> eMtl = new List<double>();
+            List<double> eMyl = new List<double>();
+            List<double> eMzl = new List<double>();
+            */
+
+
             double eN = 0;
             double eVy = 0;
             double eVz = 0;
@@ -203,20 +224,12 @@ namespace FEM3D.Components
 
 
 
-            List<double> eNode = new List<double>();
             List<double> eBeam = new List<double>();
+            List<double> fVelo = new List<double>();
+            List<double> fKara = new List<double>();
+            List<string> forcel = new List<string>();
 
-
-
-            eNode.Add(errorFunc(dispV[nN * 6 , 0], dispK[nN * 6]));
-            eNode.Add(errorFunc(dispV[nN*6 + 1, 0], dispK[nN*6 + 1]));
-            eNode.Add(errorFunc(dispV[nN*6 + 2, 0], dispK[nN*6 + 2]));
-            eNode.Add(errorFunc(dispV[nN*6 + 3, 0], dispK[nN*6 + 3]));
-            eNode.Add(errorFunc(dispV[nN*6 + 4, 0], dispK[nN*6 + 4]));
-            eNode.Add(errorFunc(dispV[nN*6 + 5, 0], dispK[nN*6 + 5]));
-
-
-
+            //Making ebeam
             eBeam.Add(errorFunc(bfV[0, bN], nK[bN * 2] * 1000));
             eBeam.Add(errorFunc(bfV[1, bN], vyK[bN * 2] * 1000));
             eBeam.Add(errorFunc(bfV[2, bN], vzK[bN * 2] * 1000));
@@ -230,16 +243,112 @@ namespace FEM3D.Components
             eBeam.Add(errorFunc(bfV[6 + 4, bN], myK[bN * 2 + 1] * 1000000));
             eBeam.Add(errorFunc(bfV[6 + 5, bN], mzK[bN * 2 + 1] * 1000000));
 
+            //Making fVelo
+            fVelo.Add(bfV[0, bN]);
+            fVelo.Add(bfV[1, bN]);
+            fVelo.Add(bfV[2, bN]);
+            fVelo.Add(bfV[3, bN]);
+            fVelo.Add(bfV[4, bN]);
+            fVelo.Add(bfV[5, bN]);
+            fVelo.Add(bfV[6 + 0, bN]);
+            fVelo.Add(bfV[6 + 1, bN]);
+            fVelo.Add(bfV[6 + 2, bN]);
+            fVelo.Add(bfV[6 + 3, bN]);
+            fVelo.Add(bfV[6 + 4, bN]);
+            fVelo.Add(bfV[6 + 5, bN]);
+
+            //Making fkara
+            fKara.Add(nK[bN * 2] * 1000);
+            fKara.Add(vyK[bN * 2] * 1000);
+            fKara.Add(vzK[bN * 2] * 1000);
+            fKara.Add(mtK[bN * 2] * 1000000);
+            fKara.Add(myK[bN * 2] * 1000000);
+            fKara.Add(mzK[bN * 2] * 1000000);
+            fKara.Add(nK[bN * 2 + 1] * 1000);
+            fKara.Add(vyK[bN * 2 + 1] * 1000);
+            fKara.Add(vzK[bN * 2 + 1] * 1000);
+            fKara.Add(mtK[bN * 2 + 1] * 1000000);
+            fKara.Add(myK[bN * 2 + 1] * 1000000);
+            fKara.Add(mzK[bN * 2 + 1] * 1000000);
+
+
+
+            //Joing force error lits
+            List<string> combinedListF = new List<string>();
+            for (int i = 0; i < eBeam.Count; i++)
+            {
+                string element = Math.Round(eBeam[i],3).ToString() + " ->   " + Math.Round(fVelo[i],6).ToString() + "   :   " + Math.Round(fKara[i],6).ToString();
+                combinedListF.Add(element);
+            }
+
+            //making disp error
+            List<double> dBeam = new List<double>();
+            List<double> dVelo = new List<double>();
+            List<double> dKara = new List<double>();
+       
+
+            int sn = beams[bN].StartNode.GlobalID;
+            int en = beams[bN].EndNode.GlobalID;
+
+            dBeam.Add(errorFunc(dispV[sn + 0, 0], dispK[sn + 0]));
+            dBeam.Add(errorFunc(dispV[sn + 1, 0], dispK[sn + 1]));
+            dBeam.Add(errorFunc(dispV[sn + 2, 0], dispK[sn + 2]));
+            dBeam.Add(errorFunc(dispV[sn + 3, 0], dispK[sn + 3]));
+            dBeam.Add(errorFunc(dispV[sn + 4, 0], dispK[sn + 4]));
+            dBeam.Add(errorFunc(dispV[sn + 5, 0], dispK[sn + 5]));
+            dBeam.Add(errorFunc(dispV[en + 0, 0], dispK[en + 0]));
+            dBeam.Add(errorFunc(dispV[en + 1, 0], dispK[en + 1]));
+            dBeam.Add(errorFunc(dispV[en + 2, 0], dispK[en + 2]));
+            dBeam.Add(errorFunc(dispV[en + 3, 0], dispK[en + 3]));
+            dBeam.Add(errorFunc(dispV[en + 4, 0], dispK[en + 4]));
+            dBeam.Add(errorFunc(dispV[en + 5, 0], dispK[en + 5]));
+                                                                
+            dVelo.Add(errorFunc(dispV[sn + 0, 0], dispK[sn + 0]));
+            dVelo.Add(errorFunc(dispV[sn + 1, 0], dispK[sn + 1]));
+            dVelo.Add(errorFunc(dispV[sn + 2, 0], dispK[sn + 2]));
+            dVelo.Add(errorFunc(dispV[sn + 3, 0], dispK[sn + 3]));
+            dVelo.Add(errorFunc(dispV[sn + 4, 0], dispK[sn + 4]));
+            dVelo.Add(errorFunc(dispV[sn + 5, 0], dispK[sn + 5]));
+            dVelo.Add(errorFunc(dispV[en + 0, 0], dispK[en + 0]));
+            dVelo.Add(errorFunc(dispV[en + 1, 0], dispK[en + 1]));
+            dVelo.Add(errorFunc(dispV[en + 2, 0], dispK[en + 2]));
+            dVelo.Add(errorFunc(dispV[en + 3, 0], dispK[en + 3]));
+            dVelo.Add(errorFunc(dispV[en + 4, 0], dispK[en + 4]));
+            dVelo.Add(errorFunc(dispV[en + 5, 0], dispK[en + 5]));
+                                                                
+            dKara.Add(errorFunc(dispV[sn + 0, 0], dispK[sn + 0]));
+            dKara.Add(errorFunc(dispV[sn + 1, 0], dispK[sn + 1]));
+            dKara.Add(errorFunc(dispV[sn + 2, 0], dispK[sn + 2]));
+            dKara.Add(errorFunc(dispV[sn + 3, 0], dispK[sn + 3]));
+            dKara.Add(errorFunc(dispV[sn + 4, 0], dispK[sn + 4]));
+            dKara.Add(errorFunc(dispV[sn + 5, 0], dispK[sn + 5]));
+            dKara.Add(errorFunc(dispV[en + 0, 0], dispK[en + 0]));
+            dKara.Add(errorFunc(dispV[en + 1, 0], dispK[en + 1]));
+            dKara.Add(errorFunc(dispV[en + 2, 0], dispK[en + 2]));
+            dKara.Add(errorFunc(dispV[en + 3, 0], dispK[en + 3]));
+            dKara.Add(errorFunc(dispV[en + 4, 0], dispK[en + 4]));
+            dKara.Add(errorFunc(dispV[en + 5, 0], dispK[en + 5]));
+
+            List<string> combinedListD = new List<string>();
+            for (int i = 0; i < dBeam.Count; i++)
+            {
+                string element = Math.Round(dBeam[i], 3).ToString() + " ->   " + Math.Round(dVelo[i], 6).ToString() + "   :   " + Math.Round(dKara[i], 6).ToString();
+                combinedListD.Add(element);
+            }
+
+
 
 
 
 
             DA.SetDataList(0, eD);
             DA.SetDataList(1, eF);
-            DA.SetDataList(2, eNode);
-            DA.SetDataList(3, eBeam);
 
-
+            DA.SetDataList(2, eBeam);
+            DA.SetDataList(3, fVelo);
+            DA.SetDataList(4, fKara);
+            DA.SetDataList(5, combinedListF);
+            DA.SetDataList(6, combinedListD);
         }
 
 
