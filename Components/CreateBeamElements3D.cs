@@ -65,7 +65,41 @@ namespace FEM3D.Components
             {
                 Point3d stPt = line.From;
                 Point3d ePt = line.To;
-                
+
+                BeamElement element = new BeamElement(bidc, line);
+
+                double l = element.Length;
+
+                double cx = Math.Round((ePt.X - stPt.X) / l, 9);
+                double cy = Math.Round((ePt.Y - stPt.Y) / l, 9);
+                double cz = Math.Round((ePt.Z - stPt.Z) / l, 9);
+
+                double c1 = Math.Round(Math.Cos(alpha), 9);
+                double s1 = Math.Round(Math.Sin(alpha), 9);
+                double cxz = Math.Round(Math.Sqrt(Math.Pow(cx, 2.0) + Math.Pow(cz, 2.0)), 9);
+
+
+                if (Math.Round(cx, 9) == 0.0 && Math.Round(cz, 9) == 0.0)
+                {
+                    var xl = new Vector3d(0, cy, 0);
+                    var yl = new Vector3d(-cy * c1, 0, s1);
+                    var zl = new Vector3d(cy * s1, 0, c1);
+
+                    element.xl = xl; element.yl = yl; element.zl = zl;
+
+                    
+                }
+                else
+                {
+                    var xl = new Vector3d(cx, cy, cz);
+                    var yl = new Vector3d(Math.Round((-cx * cy * c1 - cz * s1) / cxz, 9), Math.Round(cxz * c1, 9), Math.Round((-cy * cz * c1 + cx * s1) / cxz, 9));
+                    var zl = new Vector3d(Math.Round((cx * cy * s1 - cz * c1) / cxz, 9), Math.Round(-cxz * s1, 9), Math.Round((cy * cz * s1 + cx * c1) / cxz, 9));
+
+                    element.xl = xl; element.yl = yl; element.zl = zl;
+
+                }
+
+                /*
                 var lineVec = line.Direction;
                 var planeNormal = new Rhino.Geometry.Plane(stPt, lineVec);
 
@@ -95,11 +129,13 @@ namespace FEM3D.Components
                 yl.Unitize();
                 yl.Reverse();
 
-                BeamElement element = new BeamElement(bidc, line);
+             
 
                 element.xl = xl;
                 element.yl = yl;
                 element.zl = zl;
+
+                */
 
                 bidc++;
                 if (existingNodes.ContainsKey(stPt))

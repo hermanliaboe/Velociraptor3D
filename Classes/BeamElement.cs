@@ -31,12 +31,13 @@ namespace FEM3D.Classes
         public Vector3d xl;
         public Vector3d yl;
         public Vector3d zl;
+        public double Iy;
+        public double Iz;
+        public double J;
+        public double A;
+        public LA.Matrix<double> T;
 
-        /*
-        public Vector3d xl;
-        public Vector3d yl;
-        public Vector3d zl;
-        */
+        
         public BeamElement() { }
 
         public BeamElement(int id, Line line)
@@ -81,7 +82,7 @@ namespace FEM3D.Classes
             double x2 = endNode.X;
             double y2 = endNode.Y;
 
-            double l = (Math.Sqrt(Math.Pow(z2 - z1, 2.0) + Math.Pow(x2 - x1, 2.0) + Math.Pow(y2 - y1, 2.0)));
+            double l = Math.Round((Math.Sqrt(Math.Pow(z2 - z1, 2.0) + Math.Pow(x2 - x1, 2.0) + Math.Pow(y2 - y1, 2.0))), 9);
 
             return l;
         }

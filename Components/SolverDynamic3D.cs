@@ -48,6 +48,7 @@ namespace FEM3D.Components
             pManager.AddNumberParameter("Beta", "", "Beta value for the Newmark method. Default 1/4 (average acceleration)", GH_ParamAccess.item, 1.0 / 4.0);
             pManager.AddNumberParameter("Gamma", "", "Gamme value for the Newmark method. Default 1/2 (average acceleration)", GH_ParamAccess.item, 1.0 / 2.0);
             pManager.AddNumberParameter("Time", "", "Run time for the Newmark method. Default 5 seconds", GH_ParamAccess.item, 5.0);
+            pManager.AddNumberParameter("Damping", "", "Damping parameter for the structure. Default 0.05", GH_ParamAccess.item, 0.05);
 
         }
 
@@ -85,12 +86,13 @@ namespace FEM3D.Components
             double dt = 0.01;
             double beta = 1.0 / 4.0;
             double gamma = 1.0 / 2.0;
-            DA.GetData(0, ref model);
+            double damping = 0.05;
             DA.GetData(0, ref model);
             DA.GetData(1, ref dt);
             DA.GetData(2, ref beta);
             DA.GetData(3, ref gamma);
             DA.GetData(4, ref T);
+            DA.GetData(5, ref damping);
 
             List<Load> loads = model.LoadList;
             List<BeamElement> elements = model.BeamList;
@@ -109,7 +111,7 @@ namespace FEM3D.Components
             LA.Matrix<double> globalLumpedMsup = matrices.BuildSupMat(dof, globalLumpedM, supports, nodes);
             LA.Matrix<double> globalConsistentMsup = matrices.BuildSupMat(dof, globalConsistentM, supports, nodes);
 
-            LA.Matrix<double> globalC = matrices.BuildC(globalLumpedM, globalKsup, 0.05, 0.1, 100);
+            LA.Matrix<double> globalC = matrices.BuildC(globalLumpedM, globalKsup, damping, 0.1, 100);
             LA.Matrix<double> supC = matrices.BuildSupMat(dof, globalC, supports, nodes);
             LA.Matrix<double> f0 = matrices.BuildForceVector(loads, dof);
 

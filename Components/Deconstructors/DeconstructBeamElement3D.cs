@@ -50,6 +50,11 @@ namespace FEM3D.Components.Deconstructors
             pManager.AddVectorParameter("xl", "", "", GH_ParamAccess.item);
             pManager.AddVectorParameter("yl", "", "", GH_ParamAccess.item);
             pManager.AddVectorParameter("zl", "", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Iy", "", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Iz", "", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("J", "", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("A", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("T", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -73,11 +78,15 @@ namespace FEM3D.Components.Deconstructors
             DA.SetData(9, beam.ShearMod);
             DA.SetDataList(10, beam.ForceList);
             DA.SetDataList(11, beam.LocalDisp);
-            DA.SetData(12, beam.kel);
+            DA.SetData(12, CreateRhinoMatrix(beam.kel));
             DA.SetData(13, beam.xl);
             DA.SetData(14, beam.yl);
             DA.SetData(15, beam.zl);
-          
+            DA.SetData(16, beam.Iy);
+            DA.SetData(17, beam.Iz);
+            DA.SetData(18, beam.J);
+            DA.SetData(19, beam.A);
+            DA.SetData(20, CreateRhinoMatrix(beam.T));
         }
 
         public Rhino.Geometry.Matrix CreateRhinoMatrix(LA.Matrix<double> matrix)

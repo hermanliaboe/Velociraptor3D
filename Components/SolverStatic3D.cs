@@ -86,13 +86,19 @@ namespace FEM3D.Components
 
 
             Matrices matrices = new Matrices();
+            
 
             LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements);
             LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
             LA.Matrix<double> forceVec = matrices.BuildForceVector(loads, dof);
-            //var cholesky = globalKsup.Cholesky();
-            //LA.Matrix<double> displacements = cholesky.Solve(forceVec);
-            LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
+            var cholesky = globalKsup.Cholesky();
+            
+            // ROUND K
+            globalKsup = matrices.Round(globalKsup, 9);
+            LA.Matrix<double> displacements = cholesky.Solve(forceVec);
+            // LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
+            displacements = matrices.Round(displacements, 9);
+            // round k to 5
             var reactions = globalK.Multiply(displacements);
             LA.Matrix<double> nodalForces = globalK.Multiply(displacements);
 
@@ -155,7 +161,7 @@ namespace FEM3D.Components
 
             //DA.SetData(0, item);
             DA.SetData(0, CreateRhinoMatrix(globalK));
-            DA.SetData(1, globalKsup);
+            DA.SetData(1, CreateRhinoMatrix(globalKsup));
             DA.SetData(2, forceVec);
             DA.SetData(3, displacements);
             DA.SetDataList(4, dispList);
@@ -167,7 +173,7 @@ namespace FEM3D.Components
         }
 
 
-
+        
         void getNewGeometry(double scale, LA.Matrix<double> displacements, List<BeamElement> beams, out List<NurbsCurve> lineList)
         {
             List<Line> linelist2 = new List<Line>();
@@ -259,8 +265,13 @@ namespace FEM3D.Components
 
                 Matrices mat = new Matrices();
                 LA.Matrix<double> t = mat.TransformationMatrix(beam);
+                t = mat.Round(t, 9);
+                beamDispEl = mat.Round(beamDispEl, 9);
                 var beamDispT = t.Multiply(beamDispEl);
-                LA.Matrix<double> bf = beam.kel.Multiply(beamDispT);
+                beamDispT = mat.Round(beamDispT, 9);
+                var kel = mat.Round(beam.kel, 9); 
+                LA.Matrix<double> bf = kel.Multiply(beamDispT);
+                mat.Round(bf, 9);
                 beam.ForceList = mat.GetForceList(bf);
                 beam.SetLocalDisplacementList(beamDispT);
                 beamForceMat.SetSubMatrix(0, dof, j, 1, bf);

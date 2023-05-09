@@ -122,10 +122,16 @@ namespace FEM3D.Classes
             double G = beam.ShearMod;
             double h = beam.Height;
             double w = beam.Width;
-            double A = h * w;
-            double Iy = (1.0 / 12.0) * Math.Pow(h, 3.0) * w;
-            double Iz = (1.0 / 12.0) * Math.Pow(w, 3.0) * h;  
-            double J = (w * h * (Math.Pow(w, 2.0) + Math.Pow(h, 2.0))) / 12.0; //Polar area moment of inertia
+            double A = Math.Round(Math.Pow(h, 2.0) * Math.PI, 9);
+            //double Iy = (1.0 / 12.0) * Math.Pow(h, 3.0) * w;
+            //double Iz = (1.0 / 12.0) * Math.Pow(w, 3.0) * h;  
+            //double J = (w * h * (Math.Pow(w, 2.0) + Math.Pow(h, 2.0))) / 12.0; //Polar area moment of inertia
+            double I = Math.Round(0.25 * Math.PI * Math.Pow(beam.Height, 4), 9);
+            double Iy = I;
+            double Iz = I;
+            double J = Math.Round(I * 2, 9);
+
+            beam.Iy = Iy; beam.Iz = Iz; beam.A = A; beam.J = J;
 
             double k1 = (E * A) / l;
             double k2 = 12.0 * (E * Iz) / Math.Pow(l, 3.0);
@@ -136,7 +142,7 @@ namespace FEM3D.Classes
             double k7 = 6.0 * (E * Iy) / Math.Pow(l, 2.0);
             double k8 = 4.0 * (E * Iy) / l;
             double k9 = 2.0 * (E * Iy) / l;
-            double k10 = (G * J) / l;
+            double k10 = Math.Round((G * J) / l, 9);
 
 
             kEl[0, 0] = kEl[6, 6] = k1;
@@ -164,10 +170,10 @@ namespace FEM3D.Classes
             LA.Matrix<double> tTkt = tTk.Multiply(T);
             return tTkt;
         }
-       
+
         //public LA.Matrix<double> TransformationMatrix(BeamElement beam)
         //{
-            
+
         //    var p1 = beam.Line.From;
         //    var p2 = beam.Line.To;
 
@@ -199,7 +205,7 @@ namespace FEM3D.Classes
         //            { cy*s1, 0, c1}
         //        });
         //    }
-        //    else 
+        //    else
         //    {
         //        var xl = new Vector3d(cx, cy, cz);
         //        var yl = new Vector3d((-cx * cy * c1 - cz * s1) / cxz, cxz * c1, (-cy * cz * c1 + cx * s1) / cxz);
@@ -237,12 +243,26 @@ namespace FEM3D.Classes
             });
 
 
-
+            t = Round(t, 9);
             var T = t.DiagonalStack(t);
+            T = Round(T, 9);
             T = T.DiagonalStack(T);
-
+            T = Round(T, 9);
+            beam.T = T;
             return T;
 
+        }
+
+        public LA.Matrix<double> Round(LA.Matrix<double> mat, int d)
+        {
+            for (int r = 0; r < mat.RowCount; r++)
+            {
+                for (int c = 0; c < mat.ColumnCount; c++)
+                {
+                    mat[r, c] = Math.Round(mat[r, c], d);
+                }
+            }
+            return mat;
         }
 
 
