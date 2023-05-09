@@ -43,7 +43,9 @@ namespace FEM3D.Components
             pManager.AddGenericParameter("Mt - Kara", "Mt-Kara", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("My - Kara", "My-Kara", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("Mz - Kara", "Mz-Velo", "", GH_ParamAccess.list);
-            
+            pManager.AddNumberParameter("Node chooser", "Node N", "", GH_ParamAccess.item, 0);
+            pManager.AddNumberParameter("Beam chooser", "beam N", "", GH_ParamAccess.item, 0);
+
         }
 
         /// <summary>
@@ -51,8 +53,10 @@ namespace FEM3D.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Error DOF", "eDOF", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Error Forces", "eDOF", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Error Displacements", "eDisp", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Error Forces", "eForce", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Beam Disp", "", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Beam Force", "", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -71,6 +75,8 @@ namespace FEM3D.Components
             List<double> mtK = new List<double>();
             List<double> myK = new List<double>();
             List<double> mzK = new List<double>();
+            int nN = 0;
+            int bN = 0;
 
             DA.GetData(0, ref dispV);
             DA.GetData(1, ref bfV);
@@ -83,8 +89,10 @@ namespace FEM3D.Components
             DA.GetDataList(7, mtK);
             DA.GetDataList(8, myK);
             DA.GetDataList(9, mzK);
-            
-       
+            DA.GetData(10, ref nN);
+            DA.GetData(11, ref bN);
+
+
             //Create displacement list for Karamaba
             List<double> dispK = new List<double>();
             for (int i = 0; i < transK.Count; i++)
@@ -134,7 +142,7 @@ namespace FEM3D.Components
             // compare the displacements six by six
             for (int i = 0; i < dispK.Count; i += 6)
             {
-                eTx0 +=  errorFunc(dispV[i + 0, 0], dispK[i + 0]);
+                eTx0 += errorFunc(dispV[i + 0, 0], dispK[i + 0]);
                 eTy0 += errorFunc(dispV[i + 1, 0], dispK[i + 1]);
                 eTz0 += errorFunc(dispV[i + 2, 0], dispK[i + 2]);
                 eRx0 += errorFunc(dispV[i + 3, 0], dispK[i + 3]);
@@ -186,10 +194,6 @@ namespace FEM3D.Components
                 eMz += errorFunc(bfV[6+5, i], mzK[i * 2+1]*1000000);
                 c+=2;
             }
-
-
-
-
             eF.Add(eN /  c);
             eF.Add(eVy / c);
             eF.Add(eVz / c);
@@ -199,12 +203,32 @@ namespace FEM3D.Components
 
 
 
+            List<double> eNode = new List<double>();
+            List<double> eBeam = new List<double>();
 
 
 
+            eNode.Add(errorFunc(dispV[nN * 6 , 0], dispK[nN * 6]));
+            eNode.Add(errorFunc(dispV[nN*6 + 1, 0], dispK[nN*6 + 1]));
+            eNode.Add(errorFunc(dispV[nN*6 + 2, 0], dispK[nN*6 + 2]));
+            eNode.Add(errorFunc(dispV[nN*6 + 3, 0], dispK[nN*6 + 3]));
+            eNode.Add(errorFunc(dispV[nN*6 + 4, 0], dispK[nN*6 + 4]));
+            eNode.Add(errorFunc(dispV[nN*6 + 5, 0], dispK[nN*6 + 5]));
 
 
 
+            eBeam.Add(errorFunc(bfV[0, bN], nK[bN * 2] * 1000));
+            eBeam.Add(errorFunc(bfV[1, bN], vyK[bN * 2] * 1000));
+            eBeam.Add(errorFunc(bfV[2, bN], vzK[bN * 2] * 1000));
+            eBeam.Add(errorFunc(bfV[3, bN], mtK[bN * 2] * 1000000));
+            eBeam.Add(errorFunc(bfV[4, bN], myK[bN * 2] * 1000000));
+            eBeam.Add(errorFunc(bfV[5, bN], mzK[bN * 2] * 1000000));
+            eBeam.Add(errorFunc(bfV[6 + 0, bN], nK[bN * 2 + 1] * 1000));
+            eBeam.Add(errorFunc(bfV[6 + 1, bN], vyK[bN * 2 + 1] * 1000));
+            eBeam.Add(errorFunc(bfV[6 + 2, bN], vzK[bN * 2 + 1] * 1000));
+            eBeam.Add(errorFunc(bfV[6 + 3, bN], mtK[bN * 2 + 1] * 1000000));
+            eBeam.Add(errorFunc(bfV[6 + 4, bN], myK[bN * 2 + 1] * 1000000));
+            eBeam.Add(errorFunc(bfV[6 + 5, bN], mzK[bN * 2 + 1] * 1000000));
 
 
 
@@ -212,6 +236,8 @@ namespace FEM3D.Components
 
             DA.SetDataList(0, eD);
             DA.SetDataList(1, eF);
+            DA.SetDataList(2, eNode);
+            DA.SetDataList(3, eBeam);
 
 
         }
