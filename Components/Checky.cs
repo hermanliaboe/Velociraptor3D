@@ -394,7 +394,7 @@ namespace FEM3D.Components
         public double errorFunc(double V, double K)
         {
             double error = 0;
-            if (V < 1 * Math.Pow(10, -4) && K < 1 * Math.Pow(10, -4)){
+            if (Math.Abs(V) < 1e-4 && Math.Abs(K) < 1e-4){
                 error = 0;
             }
             else

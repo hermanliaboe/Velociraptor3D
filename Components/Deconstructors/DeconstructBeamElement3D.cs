@@ -66,6 +66,8 @@ namespace FEM3D.Components.Deconstructors
         {
             BeamElement beam = new BeamElement();
             DA.GetData(0, ref beam);
+            var rhinoMatrixKel = CreateRhinoMatrix(beam.kel);
+            var rhinoMatrixT = CreateRhinoMatrix(beam.T);
 
             DA.SetData(0, beam.StartNode);
             DA.SetData(1, beam.EndNode);
@@ -79,15 +81,15 @@ namespace FEM3D.Components.Deconstructors
             DA.SetData(9, beam.ShearMod);
             DA.SetDataList(10, beam.ForceList);
             DA.SetDataList(11, beam.LocalDisp);
-            DA.SetData(12, CreateRhinoMatrix(beam.kel));
+            DA.SetData(12, rhinoMatrixKel);
             DA.SetData(13, beam.xl);
             DA.SetData(14, beam.yl);
             DA.SetData(15, beam.zl);
-            DA.SetData(16, beam.Iy);
+            DA.SetData(16, Math.Round(beam.Iy, 12));
             DA.SetData(17, beam.Iz);
             DA.SetData(18, beam.J);
             DA.SetData(19, beam.A);
-            DA.SetData(20, CreateRhinoMatrix(beam.T));
+            DA.SetData(20, rhinoMatrixT);
             DA.SetDataList(21, beam.GlobalDisp);
         }
 

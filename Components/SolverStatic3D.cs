@@ -94,10 +94,10 @@ namespace FEM3D.Components
             var cholesky = globalKsup.Cholesky();
             
             // ROUND K
-            globalKsup = matrices.Round(globalKsup, 9);
+            globalKsup = matrices.Round(globalKsup, 15);
             LA.Matrix<double> displacements = cholesky.Solve(forceVec);
             // LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
-            displacements = matrices.Round(displacements, 9);
+            displacements = matrices.Round(displacements, 15);
             // round k to 5
             var reactions = globalK.Multiply(displacements);
             LA.Matrix<double> nodalForces = globalK.Multiply(displacements);
@@ -266,8 +266,8 @@ namespace FEM3D.Components
                 Matrices mat = new Matrices();
                 LA.Matrix<double> t = mat.TransformationMatrix(beam);
               
-                var localElementDisplacements = t.Multiply(globalElementDisplacements);
-                LA.Matrix<double> bf = beam.kel.Multiply(localElementDisplacements);
+                var localElementDisplacements = mat.Round(t*globalElementDisplacements, 15);
+                LA.Matrix<double> bf = beam.kel*localElementDisplacements;
                 beam.ForceList = mat.GetForceList(bf);
                 beam.SetLocalDisplacementList(localElementDisplacements);
                 beam.SetGlobalDisplacementList(globalElementDisplacements);

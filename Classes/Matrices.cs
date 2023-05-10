@@ -126,23 +126,23 @@ namespace FEM3D.Classes
             //double Iy = (1.0 / 12.0) * Math.Pow(h, 3.0) * w;
             //double Iz = (1.0 / 12.0) * Math.Pow(w, 3.0) * h;  
             //double J = (w * h * (Math.Pow(w, 2.0) + Math.Pow(h, 2.0))) / 12.0; //Polar area moment of inertia
-            double I = 0.25 * Math.PI * Math.Pow(beam.Height, 4);
-            double Iy = I;
-            double Iz = I;
-            double J = I * 2;
+            double I = 0.25 * Math.PI * Math.Pow(beam.Height, 4.0);
+            double Iy = Math.Round(I,0);
+            double Iz = Math.Round(I, 0);
+            double J = Math.Round(I * 2);
 
             beam.Iy = Iy; beam.Iz = Iz; beam.A = A; beam.J = J;
 
-            double k1 = (E * A) / l;
-            double k2 = 12.0 * (E * Iz) / Math.Pow(l, 3.0);
-            double k3 = 6.0 * (E * Iz) / Math.Pow(l, 2.0);
-            double k4 = 4.0 * (E * Iz) / l;
-            double k5 = 2.0 * (E * Iz) / l;
-            double k6 = 12.0 * (E * Iy) / Math.Pow(l, 3.0);
-            double k7 = 6.0 * (E * Iy) / Math.Pow(l, 2.0);
-            double k8 = 4.0 * (E * Iy) / l;
-            double k9 = 2.0 * (E * Iy) / l;
-            double k10 = (G * J) / l;
+            double k1 = Math.Round((E * A) / l, 15);
+            double k2 = Math.Round(12.0 * (E * Iz) / Math.Pow(l, 3.0), 15);
+            double k3 = Math.Round(6.0 * (E * Iz) / Math.Pow(l, 2.0), 15);
+            double k4 = Math.Round(4.0 * (E * Iz) / l, 15);
+            double k5 = Math.Round(2.0 * (E * Iz) / l, 15);
+            double k6 = Math.Round(12.0 * (E * Iy) / Math.Pow(l, 3.0),15);
+            double k7 = Math.Round(6.0 * (E * Iy) / Math.Pow(l, 2.0), 15);
+            double k8 = Math.Round(4.0 * (E * Iy) / l, 15);
+            double k9 = Math.Round(2.0 * (E * Iy) / l, 15);
+            double k10 = Math.Round((G * J) / l, 15);
 
 
             kEl[0, 0] = kEl[6, 6] = k1;
