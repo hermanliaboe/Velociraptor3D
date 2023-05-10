@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
+using System.Xml.Linq;
 using FEM3D.Classes;
 using FEM3D.Properties;
 using Grasshopper.Kernel;
@@ -67,7 +68,7 @@ namespace FEM3D.Components
             pManager.AddGenericParameter("Full error disp n", "", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("Full error force n", "", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("BeamElement", "beam", "", GH_ParamAccess.item);
-
+            pManager.AddGenericParameter("Worst error - force ", "Worst", "", GH_ParamAccess.list);
 
         }
 
@@ -199,25 +200,48 @@ namespace FEM3D.Components
             double eMz = 0;
 
             List<double> eF = new List<double>();
+            LA.Matrix<double> fErrTot = LA.Matrix<double>.Build.Dense(13, beams.Count);
 
             int c = 0;
             for (int i = 0; i < bfV.ColumnCount; i++)
             {
-                eN +=  errorFunc(bfV[0, i],  nK[i*2]*1000);
-                eVy += errorFunc(bfV[1, i], vyK[i*2]*1000);
-                eVz += errorFunc(bfV[2, i], vzK[i*2]*1000);
-                eMt += errorFunc(bfV[3, i], mtK[i*2]*1000000);
-                eMy += errorFunc(bfV[4, i], myK[i*2]*1000000);
-                eMz += errorFunc(bfV[5, i], mzK[i*2]*1000000);
+                LA.Matrix<double> fErr = LA.Matrix<double>.Build.Dense(13, 1,0.0);
 
-                eN  += errorFunc(bfV[6+0, i],  nK[i * 2 +1]*1000);
-                eVy += errorFunc(bfV[6+1, i], vyK[i * 2 +1]*1000);
-                eVz += errorFunc(bfV[6+2, i], vzK[i * 2 +1]*1000);
-                eMt += errorFunc(bfV[6+3, i], mtK[i * 2 +1]*1000000);
-                eMy += errorFunc(bfV[6+4, i], myK[i * 2 +1]*1000000);
-                eMz += errorFunc(bfV[6+5, i], mzK[i * 2 +1]*1000000);
+                fErr[0, 0] = errorFunc(bfV[0, i], nK[i * 2] * 1000);
+                fErr[1, 0] = errorFunc(bfV[1, i], vyK[i * 2] * 1000);
+                fErr[2, 0] = errorFunc(bfV[2, i], vzK[i * 2] * 1000);
+                fErr[3, 0] = errorFunc(bfV[3, i], mtK[i * 2] * 1000000);
+                fErr[4, 0] = errorFunc(bfV[4, i], myK[i * 2] * 1000000);
+                fErr[5, 0] = errorFunc(bfV[5, i], mzK[i * 2] * 1000000);
+                
+                fErr[6, 0] = errorFunc(bfV[6 + 0, i], nK[i * 2 + 1] * 1000);
+                fErr[7, 0] = errorFunc(bfV[6 + 1, i], vyK[i * 2 + 1] * 1000);
+                fErr[8, 0] = errorFunc(bfV[6 + 2, i], vzK[i * 2 + 1] * 1000);
+                fErr[9, 0] = errorFunc(bfV[6 + 3, i], mtK[i * 2 + 1] * 1000000);
+                fErr[10, 0]= errorFunc(bfV[6 + 4, i], myK[i * 2 + 1] * 1000000);
+                fErr[11, 0]= errorFunc(bfV[6 + 5, i], mzK[i * 2 + 1] * 1000000);
+
+                eN +=  fErr[0, 0];
+                eVy += fErr[1, 0];
+                eVz += fErr[2, 0];
+                eMt += fErr[3, 0];
+                eMy += fErr[4, 0];
+                eMz += fErr[5, 0];
+                                ;
+                eN  += fErr[6, 0];
+                eVy += fErr[7, 0];
+                eVz += fErr[8, 0];
+                eMt += fErr[9, 0];
+                eMy += fErr[10, 0];
+                eMz += fErr[11, 0];
+
+                fErr[12, 0] = fErr.ColumnSums()[0];
+
+                fErrTot.SetSubMatrix(0, 13, i, 1, fErr);
                 c+=2;
+
             }
+
             eF.Add(eN /  c);
             eF.Add(eVy / c);
             eF.Add(eVz / c);
@@ -229,7 +253,6 @@ namespace FEM3D.Components
             List<double> dBeam = new List<double>();
             List<double> dVelo = new List<double>();
             List<double> dKara = new List<double>();
-
 
             int sn = beams[bN].StartNode.GlobalID;
             int en = beams[bN].EndNode.GlobalID;
@@ -282,23 +305,23 @@ namespace FEM3D.Components
 
 
             //Making forces
-            List<double> eBeam = new List<double>();
+            List<double> fBeam = new List<double>();
             List<double> fVelo = new List<double>();
             List<double> fKara = new List<double>();
 
          
-            eBeam.Add(errorFunc(bfV[0, bN], nK[bN * 2] * 1000));
-            eBeam.Add(errorFunc(bfV[1, bN], vyK[bN * 2] * 1000));
-            eBeam.Add(errorFunc(bfV[2, bN], vzK[bN * 2] * 1000));
-            eBeam.Add(errorFunc(bfV[3, bN], mtK[bN * 2] * 1000000));
-            eBeam.Add(errorFunc(bfV[4, bN], myK[bN * 2] * 1000000));
-            eBeam.Add(errorFunc(bfV[5, bN], mzK[bN * 2] * 1000000));
-            eBeam.Add(errorFunc(bfV[6 + 0, bN], nK[bN * 2 + 1] * 1000));
-            eBeam.Add(errorFunc(bfV[6 + 1, bN], vyK[bN * 2 + 1] * 1000));
-            eBeam.Add(errorFunc(bfV[6 + 2, bN], vzK[bN * 2 + 1] * 1000));
-            eBeam.Add(errorFunc(bfV[6 + 3, bN], mtK[bN * 2 + 1] * 1000000));
-            eBeam.Add(errorFunc(bfV[6 + 4, bN], myK[bN * 2 + 1] * 1000000));
-            eBeam.Add(errorFunc(bfV[6 + 5, bN], mzK[bN * 2 + 1] * 1000000));
+            fBeam.Add(errorFunc(bfV[0, bN], nK[bN * 2] * 1000));
+            fBeam.Add(errorFunc(bfV[1, bN], vyK[bN * 2] * 1000));
+            fBeam.Add(errorFunc(bfV[2, bN], vzK[bN * 2] * 1000));
+            fBeam.Add(errorFunc(bfV[3, bN], mtK[bN * 2] * 1000000));
+            fBeam.Add(errorFunc(bfV[4, bN], myK[bN * 2] * 1000000));
+            fBeam.Add(errorFunc(bfV[5, bN], mzK[bN * 2] * 1000000));
+            fBeam.Add(errorFunc(bfV[6 + 0, bN], nK[bN * 2 + 1] * 1000));
+            fBeam.Add(errorFunc(bfV[6 + 1, bN], vyK[bN * 2 + 1] * 1000));
+            fBeam.Add(errorFunc(bfV[6 + 2, bN], vzK[bN * 2 + 1] * 1000));
+            fBeam.Add(errorFunc(bfV[6 + 3, bN], mtK[bN * 2 + 1] * 1000000));
+            fBeam.Add(errorFunc(bfV[6 + 4, bN], myK[bN * 2 + 1] * 1000000));
+            fBeam.Add(errorFunc(bfV[6 + 5, bN], mzK[bN * 2 + 1] * 1000000));
 
             //Making fVelo
             fVelo.Add(bfV[0, bN]);
@@ -332,13 +355,32 @@ namespace FEM3D.Components
 
             //Joing force error lits
             List<string> combinedListF = new List<string>();
-            for (int i = 0; i < eBeam.Count; i++)
+            for (int i = 0; i < fBeam.Count; i++)
             {
-                string element = Math.Round(eBeam[i],3).ToString() + " ->   " + Math.Round(fVelo[i],6).ToString() + "   :   " + Math.Round(fKara[i],6).ToString();
+                string element = Math.Round(fBeam[i],3).ToString() + " ->   " + Math.Round(fVelo[i],6).ToString() + "   :   " + Math.Round(fKara[i],6).ToString();
                 combinedListF.Add(element);
             }
 
             
+
+            for (int i = 0; i < fErrTot.ColumnCount; i++)
+            {
+
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
