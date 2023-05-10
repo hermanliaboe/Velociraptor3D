@@ -55,6 +55,7 @@ namespace FEM3D.Components.Deconstructors
             pManager.AddNumberParameter("J", "", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("A", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("T", "", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("global displacements", "", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -87,6 +88,7 @@ namespace FEM3D.Components.Deconstructors
             DA.SetData(18, beam.J);
             DA.SetData(19, beam.A);
             DA.SetData(20, CreateRhinoMatrix(beam.T));
+            DA.SetDataList(21, beam.GlobalDisp);
         }
 
         public Rhino.Geometry.Matrix CreateRhinoMatrix(LA.Matrix<double> matrix)

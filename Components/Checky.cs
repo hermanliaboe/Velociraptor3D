@@ -49,6 +49,7 @@ namespace FEM3D.Components
             pManager.AddGenericParameter("Mz - Kara", "Mz-Velo", "", GH_ParamAccess.list);
 
             pManager.AddNumberParameter("Beam chooser", "beam n", "", GH_ParamAccess.item, n);
+            pManager.AddNumberParameter("Error % limit", "", "", GH_ParamAccess.item, 25.0) ;
 
         }
 
@@ -68,7 +69,7 @@ namespace FEM3D.Components
             pManager.AddGenericParameter("Full error disp n", "", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("Full error force n", "", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("BeamElement", "beam", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Worst error - force ", "Worst", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Worst beams", "", "Beam elements with one force error over 25%, or chosen limit", GH_ParamAccess.list);
 
         }
 
@@ -91,6 +92,7 @@ namespace FEM3D.Components
             List<double> mzK = new List<double>();
             double nN0 = 0.0;
             double bN0 = 0.0;
+            double errorLimit = 0.0;
 
             DA.GetDataList(0, beams);
             DA.GetData(1, ref dispV);
@@ -105,6 +107,7 @@ namespace FEM3D.Components
             DA.GetDataList(9, myK);
             DA.GetDataList(10, mzK);
             DA.GetData(11, ref bN0);
+            DA.GetData(12, ref errorLimit);
 
             int bN = ((int)bN0);
 
@@ -137,14 +140,14 @@ namespace FEM3D.Components
                 }
             }
 
-            //Make error displacement
+            //Calculate displacement errors
             List<double> eTx   = new List<double>();
             List<double> eTy = new List<double>();
             List<double> eTz = new List<double>();
             List<double> eRx = new List<double>();
             List<double> eRy = new List<double>();
             List<double> eRz = new List<double>();
-            List<double> eD    = new List<double>();
+            List<double> avgDisplacementErrors    = new List<double>();
 
             double eTx0 = 0;
             double eTy0 = 0;
@@ -173,24 +176,12 @@ namespace FEM3D.Components
                 
             }
 
-            eD.Add(eTx0 / eTx.Count);
-            eD.Add(eTy0 / eTy.Count);
-            eD.Add(eTz0 / eTz.Count);
-            eD.Add(eRx0 / eRx.Count);
-            eD.Add(eRy0 / eRy.Count);
-            eD.Add(eRz0 / eRz.Count);
-
-
-            //Forces
-            /*
-            List<double> eNl  = new List<double>();
-            List<double> eVyl = new List<double>();
-            List<double> eVzl = new List<double>();
-            List<double> eMtl = new List<double>();
-            List<double> eMyl = new List<double>();
-            List<double> eMzl = new List<double>();
-            */
-
+            avgDisplacementErrors.Add(eTx0 / eTx.Count);
+            avgDisplacementErrors.Add(eTy0 / eTy.Count);
+            avgDisplacementErrors.Add(eTz0 / eTz.Count);
+            avgDisplacementErrors.Add(eRx0 / eRx.Count);
+            avgDisplacementErrors.Add(eRy0 / eRy.Count);
+            avgDisplacementErrors.Add(eRz0 / eRz.Count);
 
             double eN = 0;
             double eVy = 0;
@@ -199,55 +190,76 @@ namespace FEM3D.Components
             double eMy = 0;
             double eMz = 0;
 
-            List<double> eF = new List<double>();
-            LA.Matrix<double> fErrTot = LA.Matrix<double>.Build.Dense(13, beams.Count);
+            List<double> avgForceErrors = new List<double>();
 
-            int c = 0;
-            for (int i = 0; i < bfV.ColumnCount; i++)
+            int c = nK.Count;
+           
+            List<BeamElement> worstBeams = new List<BeamElement>();
+
+            for (int i = 0; i < beams.Count; i++)
             {
-                LA.Matrix<double> fErr = LA.Matrix<double>.Build.Dense(13, 1,0.0);
+                List<double> localForceErrors = new List<double>();
 
-                fErr[0, 0] = errorFunc(bfV[0, i], nK[i * 2] * 1000);
-                fErr[1, 0] = errorFunc(bfV[1, i], vyK[i * 2] * 1000);
-                fErr[2, 0] = errorFunc(bfV[2, i], vzK[i * 2] * 1000);
-                fErr[3, 0] = errorFunc(bfV[3, i], mtK[i * 2] * 1000000);
-                fErr[4, 0] = errorFunc(bfV[4, i], myK[i * 2] * 1000000);
-                fErr[5, 0] = errorFunc(bfV[5, i], mzK[i * 2] * 1000000);
-                
-                fErr[6, 0] = errorFunc(bfV[6 + 0, i], nK[i * 2 + 1] * 1000);
-                fErr[7, 0] = errorFunc(bfV[6 + 1, i], vyK[i * 2 + 1] * 1000);
-                fErr[8, 0] = errorFunc(bfV[6 + 2, i], vzK[i * 2 + 1] * 1000);
-                fErr[9, 0] = errorFunc(bfV[6 + 3, i], mtK[i * 2 + 1] * 1000000);
-                fErr[10, 0]= errorFunc(bfV[6 + 4, i], myK[i * 2 + 1] * 1000000);
-                fErr[11, 0]= errorFunc(bfV[6 + 5, i], mzK[i * 2 + 1] * 1000000);
+                double localErrorN1 = errorFunc(beams[i].ForceList[0], nK[i * 2] * 1000);
+                localForceErrors.Add(localErrorN1);
+                double localErrorVy1 = errorFunc(beams[i].ForceList[1], vyK[i * 2] * 1000);
+                localForceErrors.Add(localErrorVy1);
+                double localErrorVz1 = errorFunc(beams[i].ForceList[2], vzK[i * 2] * 1000);
+                localForceErrors.Add(localErrorVz1);
+                double localErrorMt1 = errorFunc(beams[i].ForceList[3], mtK[i * 2] * 1000000);
+                localForceErrors.Add(localErrorMt1);
+                double localErrorMy1 = errorFunc(beams[i].ForceList[4], myK[i * 2] * 1000000);
+                localForceErrors.Add(localErrorMy1);
+                double localErrorMz1 = errorFunc(beams[i].ForceList[5], mzK[i * 2] * 1000000);
+                localForceErrors.Add(localErrorMz1);
 
-                eN +=  fErr[0, 0];
-                eVy += fErr[1, 0];
-                eVz += fErr[2, 0];
-                eMt += fErr[3, 0];
-                eMy += fErr[4, 0];
-                eMz += fErr[5, 0];
-                                ;
-                eN  += fErr[6, 0];
-                eVy += fErr[7, 0];
-                eVz += fErr[8, 0];
-                eMt += fErr[9, 0];
-                eMy += fErr[10, 0];
-                eMz += fErr[11, 0];
+                double localErrorN2 = errorFunc(beams[i].ForceList[6], nK[i * 2 + 1] * 1000);
+                localForceErrors.Add(localErrorN2);
+                double localErrorVy2 = errorFunc(beams[i].ForceList[7], vyK[i * 2 + 1] * 1000);
+                localForceErrors.Add(localErrorVy2);
+                double localErrorVz2 = errorFunc(beams[i].ForceList[8], vzK[i * 2 + 1] * 1000);
+                localForceErrors.Add(localErrorVz2);
+                double localErrorMt2 = errorFunc(beams[i].ForceList[9], mtK[i * 2 + 1] * 1000000);
+                localForceErrors.Add(localErrorMt1);
+                double localErrorMy2 = errorFunc(beams[i].ForceList[10], myK[i * 2 + 1] * 1000000);
+                localForceErrors.Add(localErrorMy2);
+                double localErrorMz2 = errorFunc(beams[i].ForceList[11], mzK[i * 2 + 1] * 1000000);
+                localForceErrors.Add(localErrorMz2);
 
-                fErr[12, 0] = fErr.ColumnSums()[0];
+                foreach (double localForceError in localForceErrors)
+                {
+                    if (localForceError >= errorLimit)
+                    {
+                        worstBeams.Add(beams[i]);
+                        break;
+                    } 
+                }
+                beams[i].localForceErrors = localForceErrors;
 
-                fErrTot.SetSubMatrix(0, 13, i, 1, fErr);
-                c+=2;
 
+                eN += localErrorN1;
+                eVy += localErrorVy1;
+                eVz += localErrorVz1;
+                eMt += localErrorMt1;
+                eMy += localErrorMy1;
+                eMz += localErrorMz1;
+
+                eN += localErrorN2;
+                eVy += localErrorVy2;
+                eVz += localErrorVz2;
+                eMt += localErrorMt2;
+                eMy += localErrorMy2;
+                eMz += localErrorMz2;
+
+                c += 2;
             }
 
-            eF.Add(eN /  c);
-            eF.Add(eVy / c);
-            eF.Add(eVz / c);
-            eF.Add(eMt / c);
-            eF.Add(eMy / c);
-            eF.Add(eMz / c);
+            avgForceErrors.Add(eN /  c);
+            avgForceErrors.Add(eVy / c);
+            avgForceErrors.Add(eVz / c);
+            avgForceErrors.Add(eMt / c);
+            avgForceErrors.Add(eMy / c);
+            avgForceErrors.Add(eMz / c);
 
             //making disp error
             List<double> dBeam = new List<double>();
@@ -361,34 +373,10 @@ namespace FEM3D.Components
                 combinedListF.Add(element);
             }
 
-            
 
-            for (int i = 0; i < fErrTot.ColumnCount; i++)
-            {
-
-            }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            DA.SetDataList(0, eD);
+            DA.SetDataList(0, avgDisplacementErrors);
             //DA.SetDataList(1, eF);
-            DA.SetDataList(1, eF);
+            DA.SetDataList(1, avgForceErrors);
 
             DA.SetDataList(2, dispK);
             //DA.SetDataList(3, fVelo);
@@ -397,6 +385,7 @@ namespace FEM3D.Components
             DA.SetDataList(3, combinedListD);
             DA.SetDataList(4, combinedListF);
             DA.SetData(5, beams[bN]);
+            DA.SetDataList(6, worstBeams);
         }
 
 

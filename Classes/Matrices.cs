@@ -122,14 +122,14 @@ namespace FEM3D.Classes
             double G = beam.ShearMod;
             double h = beam.Height;
             double w = beam.Width;
-            double A = Math.Round(Math.Pow(h, 2.0) * Math.PI, 9);
+            double A = Math.Pow(h, 2.0) * Math.PI;
             //double Iy = (1.0 / 12.0) * Math.Pow(h, 3.0) * w;
             //double Iz = (1.0 / 12.0) * Math.Pow(w, 3.0) * h;  
             //double J = (w * h * (Math.Pow(w, 2.0) + Math.Pow(h, 2.0))) / 12.0; //Polar area moment of inertia
-            double I = Math.Round(0.25 * Math.PI * Math.Pow(beam.Height, 4), 9);
+            double I = 0.25 * Math.PI * Math.Pow(beam.Height, 4);
             double Iy = I;
             double Iz = I;
-            double J = Math.Round(I * 2, 9);
+            double J = I * 2;
 
             beam.Iy = Iy; beam.Iz = Iz; beam.A = A; beam.J = J;
 
@@ -142,7 +142,7 @@ namespace FEM3D.Classes
             double k7 = 6.0 * (E * Iy) / Math.Pow(l, 2.0);
             double k8 = 4.0 * (E * Iy) / l;
             double k9 = 2.0 * (E * Iy) / l;
-            double k10 = Math.Round((G * J) / l, 9);
+            double k10 = (G * J) / l;
 
 
             kEl[0, 0] = kEl[6, 6] = k1;
@@ -243,11 +243,8 @@ namespace FEM3D.Classes
             });
 
 
-            t = Round(t, 9);
             var T = t.DiagonalStack(t);
-            T = Round(T, 9);
             T = T.DiagonalStack(T);
-            T = Round(T, 9);
             beam.T = T;
             return T;
 

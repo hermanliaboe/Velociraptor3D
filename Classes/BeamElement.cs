@@ -36,6 +36,7 @@ namespace FEM3D.Classes
         public double J;
         public double A;
         public LA.Matrix<double> T;
+        public List<double> localForceErrors;
 
         
         public BeamElement() { }

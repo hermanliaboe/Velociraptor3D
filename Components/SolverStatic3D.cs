@@ -245,35 +245,32 @@ namespace FEM3D.Components
 
             foreach (BeamElement beam in elements)
             {
-                LA.Matrix<double> beamDispEl = LA.Matrix<double>.Build.Dense(dof, 1);
+                LA.Matrix<double> globalElementDisplacements = LA.Matrix<double>.Build.Dense(dof, 1);
 
                 int startId = beam.StartNode.GlobalID;
-                beamDispEl[0, 0] = Math.Round(displacements[startId * i,     0], 6);
-                beamDispEl[1, 0] = Math.Round(displacements[startId * i + 1, 0], 6);
-                beamDispEl[2, 0] = Math.Round(displacements[startId * i + 2, 0], 6);
-                beamDispEl[3, 0] = Math.Round(displacements[startId * i + 3, 0], 6);
-                beamDispEl[4, 0] = Math.Round(displacements[startId * i + 4, 0], 6);
-                beamDispEl[5, 0] = Math.Round(displacements[startId * i + 5, 0], 6);
+                globalElementDisplacements[0, 0] = displacements[startId * i,     0];
+                globalElementDisplacements[1, 0] = displacements[startId * i + 1, 0];
+                globalElementDisplacements[2, 0] = displacements[startId * i + 2, 0];
+                globalElementDisplacements[3, 0] = displacements[startId * i + 3, 0];
+                globalElementDisplacements[4, 0] = displacements[startId * i + 4, 0];
+                globalElementDisplacements[5, 0] = displacements[startId * i + 5, 0];
 
                 int endId = beam.EndNode.GlobalID;
-                beamDispEl[6, 0] = Math.Round(displacements[endId * i,     0], 6);
-                beamDispEl[7, 0] = Math.Round(displacements[endId * i + 1, 0], 6);
-                beamDispEl[8, 0] = Math.Round(displacements[endId * i + 2, 0], 6);
-                beamDispEl[9, 0] = Math.Round(displacements[endId * i + 3, 0], 6);
-                beamDispEl[10, 0] = Math.Round(displacements[endId * i + 4, 0], 6);
-                beamDispEl[11, 0] = Math.Round(displacements[endId * i + 5, 0], 6);
+                globalElementDisplacements[6, 0] = displacements[endId * i,     0];
+                globalElementDisplacements[7, 0] = displacements[endId * i + 1, 0];
+                globalElementDisplacements[8, 0] = displacements[endId * i + 2, 0];
+                globalElementDisplacements[9, 0] = displacements[endId * i + 3, 0];
+                globalElementDisplacements[10, 0] = displacements[endId * i + 4, 0];
+                globalElementDisplacements[11, 0] = displacements[endId * i + 5, 0];
 
                 Matrices mat = new Matrices();
                 LA.Matrix<double> t = mat.TransformationMatrix(beam);
-                t = mat.Round(t, 9);
-                beamDispEl = mat.Round(beamDispEl, 9);
-                var beamDispT = t.Multiply(beamDispEl);
-                beamDispT = mat.Round(beamDispT, 9);
-                var kel = mat.Round(beam.kel, 9); 
-                LA.Matrix<double> bf = kel.Multiply(beamDispT);
-                mat.Round(bf, 9);
+              
+                var localElementDisplacements = t.Multiply(globalElementDisplacements);
+                LA.Matrix<double> bf = beam.kel.Multiply(localElementDisplacements);
                 beam.ForceList = mat.GetForceList(bf);
-                beam.SetLocalDisplacementList(beamDispT);
+                beam.SetLocalDisplacementList(localElementDisplacements);
+                beam.SetGlobalDisplacementList(globalElementDisplacements);
                 beamForceMat.SetSubMatrix(0, dof, j, 1, bf);
                 j++;
             }
