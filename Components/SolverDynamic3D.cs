@@ -71,6 +71,8 @@ namespace FEM3D.Components
             pManager.AddGenericParameter("Nodal Forces", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Natural Frequencies [Hz]", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Natural Frequencies [Hz], sorted", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("z Displacements", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("z Displacemtns RM", "", "", GH_ParamAccess.item);
 
         }
 
@@ -128,7 +130,9 @@ namespace FEM3D.Components
                 nodalForces.SetSubMatrix(0, i, globalK.Multiply(displacements.SubMatrix(0, dof, i, 1)));
             }
 
-            
+            LA.Matrix<double> zDisplacements =  zDisp(displacements);
+
+
             var eigs = EigenValues(globalKsup, globalConsistentMsup);
             var natFreq = LA.Matrix<double>.Build.Dense(1, eigs.ColumnCount, 0);
             // Sort the natFreq matrix from smallest to largest using an array
@@ -158,7 +162,7 @@ namespace FEM3D.Components
             Rhino.Geometry.Matrix rhinoMatrixCred = CreateRhinoMatrix(supC);
             Rhino.Geometry.Matrix rhinoMatrixNatFreq = CreateRhinoMatrix(natFreq);
             Rhino.Geometry.Matrix rhinoMatrixSortedNatFreq = CreateRhinoMatrix(sortedNatFreqMatrix);
-
+            Rhino.Geometry.Matrix rhinoMatrixzDisplacements = CreateRhinoMatrix(zDisplacements);
 
             DA.SetData(0, rhinoMatrixK);
             DA.SetData(1, rhinoMatrixKred);
@@ -174,6 +178,8 @@ namespace FEM3D.Components
             DA.SetData(11, nodalForces);
             DA.SetData(12, rhinoMatrixNatFreq);
             DA.SetData(13, rhinoMatrixSortedNatFreq);
+            DA.SetData(14, zDisplacements);
+            DA.SetData(15, rhinoMatrixzDisplacements);
         }
 
 
@@ -254,6 +260,21 @@ namespace FEM3D.Components
             }
             return W;
         }
+
+
+        public LA.Matrix<double> zDisp(LA.Matrix<double> disp)
+        {
+            int n = disp.RowCount / 6;
+            var zDisp = LA.Matrix<double>.Build.Dense(n, disp.ColumnCount);
+
+            for (int i = 0; i < n; i++)
+            {
+                var dispNodei = disp.SubMatrix(i*6 + 2, 1, 0, disp.ColumnCount);
+                zDisp.SetSubMatrix(i,0, dispNodei);
+            }
+            return zDisp;
+        }
+
 
 
 
