@@ -35,9 +35,11 @@ namespace FEM3D.Components
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Input", "inpt", "", GH_ParamAccess.item);
-            pManager.AddTextParameter("FilePath", "path", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("DispZ", "inpt", "", GH_ParamAccess.item);
+            pManager.AddTextParameter("FilePath DispZ", "path dispZ", "", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Write?", "w", "", GH_ParamAccess.item);
+            pManager.AddPointParameter("Points", "pts", "",GH_ParamAccess.list);
+            pManager.AddTextParameter("FilePath Pts", "path pts", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -55,18 +57,21 @@ namespace FEM3D.Components
         {
 
             LA.Double.DenseMatrix disp = new LA.Double.DenseMatrix(2);
-            string filePath = "";
+            string filePathZ = "";
             bool write = false;
+            List<Point3d> pts = new List<Point3d>();
+            string filePathP = "";
 
             DA.GetData(0, ref disp);
-            DA.GetData(1, ref filePath);
+            DA.GetData(1, ref filePathZ);
             DA.GetData(2, ref write);
+            DA.GetDataList(3, pts);
+            DA.GetData(4, ref filePathP);
 
             if (write)
             {
-
                 // Open the file for appending if it exists, or create a new file if it doesn't exist
-                using (StreamWriter writer = new StreamWriter(filePath, true))
+                using (StreamWriter writer = new StreamWriter(filePathZ, true))
                 {
                     // Loop through each row of the matrix
                     for (int i = 0; i < disp.RowCount; i++)
@@ -86,30 +91,31 @@ namespace FEM3D.Components
                 }
 
 
+                if (write)
+                {
+                    // Open the file for appending if it exists, or create a new file if it doesn't exist
+                    using (StreamWriter writer = new StreamWriter(filePathP, true))
+                    {
+                        foreach (Point3d p in pts)
+                        {
+                            writer.Write(p.X + "   "); 
+                        }
+                        writer.WriteLine();
+                        foreach (Point3d p in pts)
+                        {
+                            writer.Write(p.Y + "   "); 
+                        }
+                        writer.WriteLine();
+                        foreach (Point3d p in pts)
+                        {
+                            writer.Write(p.Z + "   ");
+                        }
+                        writer.WriteLine();
+                        writer.WriteLine();
+                    }
+
+                }
             }
-
-
-
-
-
-            //// Open the file for writing
-            //using (StreamWriter writer = new StreamWriter(filePath))
-            //{
-            //    // Loop through each row of the matrix
-            //    for (int i = 0; i < disp.ColumnCount; i++)
-            //    {
-            //        // Loop through each column of the matrix
-            //        for (int j = 0; j < disp.RowCount; j++)
-            //        {
-            //            // Write the value at the current row and column to the file
-            //            writer.Write(values[j, i] + "   ");
-            //        }
-            //        // Move to the next line in the file
-            //        writer.WriteLine();
-            //    }
-            //}
-
-
         }
 
 

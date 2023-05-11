@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
@@ -29,6 +30,7 @@ namespace FEM3D.Components
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Beams", "beams", "Input for all beams", GH_ParamAccess.list);
+            pManager.AddTextParameter("FilePath", "path", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -46,17 +48,30 @@ namespace FEM3D.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             List<BeamElement> beams = new List<BeamElement>();
+            string filePath = "";
+
             DA.GetDataList(0, beams);
+            DA.GetData(1, ref filePath);
 
             List<string> edges = new List<string>();
 
-            foreach (BeamElement beam in beams) {
-                int s = beam.StartNode.GlobalID;
-                int e = beam.EndNode.GlobalID;
-                string s1 = '(' + s.ToString() + ',' + e.ToString() + ')';
-                var s2 = '(' + e.ToString() + ',' + s.ToString() + ')';
-                edges.Add(s1);
-                edges.Add(s2);
+            // Open the file for appending if it exists, or create a new file if it doesn't exist
+            using (StreamWriter writer = new StreamWriter(filePath, false))
+            {
+                foreach (BeamElement beam in beams)
+                {
+                    int s = beam.StartNode.GlobalID;
+                    int e = beam.EndNode.GlobalID;
+                    string s1 = '(' + s.ToString() + ',' + e.ToString() + ')';
+                    var s2 = '(' + e.ToString() + ',' + s.ToString() + ')';
+                    edges.Add(s1);
+                    edges.Add(s2);
+
+                    writer.Write(s + "   " + e);
+                    writer.WriteLine();
+                    writer.Write(e + "   " + s);
+                    writer.WriteLine();
+                }
             }
 
             DA.SetDataList(0, edges);
