@@ -1,14 +1,20 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-
-using Grasshopper.Kernel;
-using Rhino.Geometry;
+using System.Data.SqlTypes;
+using System.Xml.Linq;
 using FEM3D.Classes;
 using FEM3D.Properties;
-
-using MathNet.Numerics;
-using System.IO;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Geometry;
+using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Complex;
 using MathNet.Numerics.LinearAlgebra.Double;
+using MathNet.Numerics.LinearAlgebra.Factorization;
+using Rhino.Geometry;
+using LA = MathNet.Numerics.LinearAlgebra;
+
+using System.IO;
 
 namespace FEM3D.Components
 {
@@ -48,37 +54,64 @@ namespace FEM3D.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
 
-            DenseMatrix values = new DenseMatrix(1);
+            LA.Double.DenseMatrix disp = new LA.Double.DenseMatrix(2);
             string filePath = "";
             bool write = false;
 
-            DA.GetData(0, ref values);
+            DA.GetData(0, ref disp);
             DA.GetData(1, ref filePath);
             DA.GetData(2, ref write);
 
-
             if (write)
             {
-                // Open the file for writing
-                using (StreamWriter writer = new StreamWriter(filePath))
+
+                // Open the file for appending if it exists, or create a new file if it doesn't exist
+                using (StreamWriter writer = new StreamWriter(filePath, true))
                 {
                     // Loop through each row of the matrix
-                    for (int i = 0; i < values.ColumnCount; i++)
+                    for (int i = 0; i < disp.RowCount; i++)
                     {
                         // Loop through each column of the matrix
-                        for (int j = 0; j < values.RowCount; j++)
+                        for (int j = 0; j < disp.ColumnCount; j++)
                         {
                             // Write the value at the current row and column to the file
-                            writer.Write(values[j, i] + "   ");
+                            writer.Write(disp[i, j] + "   ");
                         }
                         // Move to the next line in the file
                         writer.WriteLine();
                     }
+
+                    // Write a blank line to the file to separate the data
+                    writer.WriteLine();
                 }
+
+
             }
 
 
+
+
+
+            //// Open the file for writing
+            //using (StreamWriter writer = new StreamWriter(filePath))
+            //{
+            //    // Loop through each row of the matrix
+            //    for (int i = 0; i < disp.ColumnCount; i++)
+            //    {
+            //        // Loop through each column of the matrix
+            //        for (int j = 0; j < disp.RowCount; j++)
+            //        {
+            //            // Write the value at the current row and column to the file
+            //            writer.Write(values[j, i] + "   ");
+            //        }
+            //        // Move to the next line in the file
+            //        writer.WriteLine();
+            //    }
+            //}
+
+
         }
+
 
         /// <summary>
         /// Provides an Icon for the component.
