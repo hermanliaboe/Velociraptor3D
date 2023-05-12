@@ -41,7 +41,7 @@ namespace FEM3D.Components
             pManager.AddGenericParameter("DispZ", "inpt", "", GH_ParamAccess.item);
             pManager.AddTextParameter("FilePath DispZ", "path dispZ", "", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Write?", "w", "", GH_ParamAccess.item);
-            pManager.AddPointParameter("Points", "pts", "",GH_ParamAccess.list, );
+            pManager.AddPointParameter("Points", "pts", "",GH_ParamAccess.list);
             pManager.AddTextParameter("FilePath Pts", "path pts", "", GH_ParamAccess.item);
         }
 
