@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -394,9 +395,9 @@ namespace FEM3D.Classes
             mEl *= ((m * a) / 105.0);
 
 
-            if (lumped==true) 
-                // if bool lumped is true, sets mEl to lumped mass matrix by
-                // summing up the rows of the matrix and placing them on the diagonal
+            if (lumped == true)
+            // if bool lumped is true, sets mEl to lumped mass matrix by
+            // summing up the rows of the matrix and placing them on the diagonal
             {
                 LA.Matrix<double> mElLumped = LA.Matrix<double>.Build.Dense(mEl.RowCount, mEl.ColumnCount, 0);
                 LA.Vector<double> rowSums = mEl.RowSums();
@@ -412,6 +413,68 @@ namespace FEM3D.Classes
             LA.Matrix<double> tTmt = tTm.Multiply(T);
             return tTmt;
         }
+
+        //public LA.Matrix<double> GetMel(BeamElement beam, bool lumped)
+        //{
+        //    int dof = beam.ElDof; // dof per element
+
+        //    double mTot = beam.A * beam.Rho * beam.Length;
+        //    double L = beam.Length;
+
+        //    // mass element matrix of right size filled with zeros
+        //    LA.Matrix<double> mEl = LA.Matrix<double>.Build.Dense(dof, dof, 0);
+
+        //    if (lumped)
+        //    {
+        //        double mHalf = mTot / 2;
+        //        for (int i = 0; i < 3; i++)
+        //        {
+        //            mEl[i, i] = mHalf;
+        //            mEl[i + 6, i + 6] = mHalf;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        double m23 = mTot * 2 / 3;
+        //        double m13 = mTot / 3;
+        //        double mL2_6 = mTot * L * L / 6;
+        //        double mL2_3 = mTot * L * L / 3;
+
+        //        for (int i = 0; i < 3; i++)
+        //        {
+        //            mEl[i, i] = m23;
+        //            mEl[i + 6, i + 6] = m23;
+        //            mEl[i, i + 6] = m13;
+        //            mEl[i + 6, i] = m13;
+        //        }
+
+        //        mEl[3, 3] = mL2_6;
+        //        mEl[4, 4] = mL2_6;
+        //        mEl[5, 5] = mL2_3;
+
+        //        mEl[9, 9] = mL2_6;
+        //        mEl[10, 10] = mL2_6;
+        //        mEl[11, 11] = mL2_3;
+
+        //        mEl[3, 9] = -mL2_6;
+        //        mEl[4, 10] = -mL2_6;
+
+        //        mEl[9, 3] = -mL2_6;
+        //        mEl[10, 4] = -mL2_6;
+        //    }
+
+        //    //Transform to global coordinates
+
+        //    LA.Matrix<double> T = TransformationMatrix(beam);
+        //    LA.Matrix<double> tT = T.Transpose();
+        //    LA.Matrix<double> tTm = tT.Multiply(mEl);
+        //    LA.Matrix<double> tTmt = tTm.Multiply(T);
+        //    return tTmt;
+
+        //}
+
+
+
         public LA.Matrix<double> BuildGlobalM(int dof, List<BeamElement> elements, bool lumped)
         {
             // the only difference between this function and BuildGlobalK is that

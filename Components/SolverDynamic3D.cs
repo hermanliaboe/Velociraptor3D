@@ -116,7 +116,7 @@ namespace FEM3D.Components
             LA.Matrix<double> globalLumpedMsup = matrices.BuildSupMat(dof, globalLumpedM, supports, nodes);
             LA.Matrix<double> globalConsistentMsup = matrices.BuildSupMat(dof, globalConsistentM, supports, nodes);
 
-            LA.Matrix<double> globalC = matrices.BuildC(globalLumpedM, globalKsup, damping, 0.1, 100);
+            LA.Matrix<double> globalC = matrices.BuildC(globalConsistentM, globalK, damping, 0.1, 100);
             LA.Matrix<double> supC = matrices.BuildSupMat(dof, globalC, supports, nodes);
             LA.Matrix<double> f0 = matrices.BuildForceVector(loads, dof);
 
