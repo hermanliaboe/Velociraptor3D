@@ -49,7 +49,8 @@ namespace FEM3D.Components
             pManager.AddNumberParameter("Gamma", "", "Gamme value for the Newmark method. Default 1/2 (average acceleration)", GH_ParamAccess.item, 1.0 / 2.0);
             pManager.AddNumberParameter("Time", "", "Run time for the Newmark method. Default 5 seconds", GH_ParamAccess.item, 5.0);
             pManager.AddNumberParameter("Damping", "", "Damping parameter for the structure. Default 0.05", GH_ParamAccess.item, 0.05);
-
+            pManager.AddGenericParameter("d0", "d0", "Initial displacement DenseMatrix(dof, 1). 'Displacements Vec' from static solver.", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("f0 zero","","set to true if you want zero force applied", GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -89,12 +90,14 @@ namespace FEM3D.Components
             double beta = 1.0 / 4.0;
             double gamma = 1.0 / 2.0;
             double damping = 0.05;
+            bool fBool = false;
             DA.GetData(0, ref model);
             DA.GetData(1, ref dt);
             DA.GetData(2, ref beta);
             DA.GetData(3, ref gamma);
             DA.GetData(4, ref T);
             DA.GetData(5, ref damping);
+            DA.GetData(7, ref fBool);
 
             List<Load> loads = model.LoadList;
             List<BeamElement> elements = model.BeamList;
@@ -120,10 +123,14 @@ namespace FEM3D.Components
             //Usage of newmark
 
             LA.Matrix<double> d0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
+
             LA.Matrix<double> v0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
+            DA.GetData(6, ref d0);
 
 
-            Newmark(beta, gamma, dt, globalConsistentMsup, globalKsup, supC, f0, d0, v0, T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
+
+
+            Newmark(beta, gamma, dt, globalConsistentMsup, globalKsup, supC, f0, d0, v0, T, fBool, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
             LA.Matrix<double> nodalForces = LA.Matrix<double>.Build.Dense(displacements.RowCount, displacements.ColumnCount);
             for (int i = 0; i < displacements.ColumnCount; i++)
             {
@@ -184,7 +191,7 @@ namespace FEM3D.Components
 
 
         void Newmark(double beta, double gamma, double dt, LA.Matrix<double> M, LA.Matrix<double> K, LA.Matrix<double> C,
-           LA.Matrix<double> f0, LA.Matrix<double> d0, LA.Matrix<double> v0, double T, out LA.Matrix<double> displacements,
+           LA.Matrix<double> f0, LA.Matrix<double> d0, LA.Matrix<double> v0, double T, bool fBool, out LA.Matrix<double> displacements,
            out LA.Matrix<double> velocities)
         {
             // d0 and v0 inputs are (dof, 1) matrices
@@ -198,7 +205,10 @@ namespace FEM3D.Components
             d.SetSubMatrix(0, dof, 0, 1, d0);
             v.SetSubMatrix(0, dof, 0, 1, v0);
 
-            fTime.SetSubMatrix(0, dof, 0, 1, f0);
+            if (fBool)
+            {
+                fTime.SetSubMatrix(0, dof, 0, 1, f0);
+            }
 
 
             // Initial calculation
