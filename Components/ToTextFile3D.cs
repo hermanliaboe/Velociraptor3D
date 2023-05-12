@@ -35,10 +35,13 @@ namespace FEM3D.Components
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            bool key = false;
+           
+            pManager.AddBooleanParameter("Over-write?", "over wrt?", "", GH_ParamAccess.item, key);
             pManager.AddGenericParameter("DispZ", "inpt", "", GH_ParamAccess.item);
             pManager.AddTextParameter("FilePath DispZ", "path dispZ", "", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Write?", "w", "", GH_ParamAccess.item);
-            pManager.AddPointParameter("Points", "pts", "",GH_ParamAccess.list);
+            pManager.AddPointParameter("Points", "pts", "",GH_ParamAccess.list, );
             pManager.AddTextParameter("FilePath Pts", "path pts", "", GH_ParamAccess.item);
         }
 
@@ -61,17 +64,19 @@ namespace FEM3D.Components
             bool write = false;
             List<Point3d> pts = new List<Point3d>();
             string filePathP = "";
+            bool key = false;
 
-            DA.GetData(0, ref disp);
-            DA.GetData(1, ref filePathZ);
-            DA.GetData(2, ref write);
-            DA.GetDataList(3, pts);
-            DA.GetData(4, ref filePathP);
+            DA.GetData(0, ref key);
+            DA.GetData(1, ref disp);
+            DA.GetData(2, ref filePathZ);
+            DA.GetData(3, ref write);
+            DA.GetDataList(4, pts);
+            DA.GetData(5, ref filePathP);
 
             if (write)
             {
                 // Open the file for appending if it exists, or create a new file if it doesn't exist
-                using (StreamWriter writer = new StreamWriter(filePathZ, true))
+                using (StreamWriter writer = new StreamWriter(filePathZ, key))
                 {
                     // Loop through each row of the matrix
                     for (int i = 0; i < disp.RowCount; i++)
@@ -94,7 +99,7 @@ namespace FEM3D.Components
                 if (write)
                 {
                     // Open the file for appending if it exists, or create a new file if it doesn't exist
-                    using (StreamWriter writer = new StreamWriter(filePathP, true))
+                    using (StreamWriter writer = new StreamWriter(filePathP, key))
                     {
                         foreach (Point3d p in pts)
                         {
@@ -115,7 +120,9 @@ namespace FEM3D.Components
                     }
 
                 }
+
             }
+
         }
 
 
