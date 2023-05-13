@@ -50,7 +50,7 @@ namespace FEM3D.Components
             pManager.AddNumberParameter("Time", "", "Run time for the Newmark method. Default 5 seconds", GH_ParamAccess.item, 5.0);
             pManager.AddNumberParameter("Damping", "", "Damping parameter for the structure. Default 0.05", GH_ParamAccess.item, 0.05);
             pManager.AddGenericParameter("d0", "d0", "Initial displacement DenseMatrix(dof, 1). 'Displacements Vec' from static solver.", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("f0 zero","","set to true if you want zero force applied", GH_ParamAccess.item, false);
+            pManager.AddBooleanParameter("f0 zero","","Set to true if you want zero force applied", GH_ParamAccess.item, false);
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace FEM3D.Components
 
             LA.Matrix<double> v0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
             DA.GetData(6, ref d0);
-
+            //d0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
 
 
 
@@ -201,15 +201,14 @@ namespace FEM3D.Components
             var a = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
             LA.Matrix<double> fTime = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
 
-
             d.SetSubMatrix(0, dof, 0, 1, d0);
             v.SetSubMatrix(0, dof, 0, 1, v0);
 
-            if (fBool)
+            if (!fBool)
             {
                 fTime.SetSubMatrix(0, dof, 0, 1, f0);
             }
-
+            
 
             // Initial calculation
             LA.Matrix<double> mInv = M.Inverse();

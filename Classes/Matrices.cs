@@ -356,16 +356,7 @@ namespace FEM3D.Classes
         {
             int dof = beam.ElDof;  // dof per element
 
-            //gets length of element
-            Node startNode = beam.StartNode;
-            double z1 = startNode.Point.Z;
-            double x1 = startNode.Point.X;
-            double y1 = startNode.Point.Y;
-
-            Node endNode = beam.EndNode;
-            double z2 = endNode.Point.Z;
-            double x2 = endNode.Point.X;
-            double y2 = endNode.Point.Y;
+            
             double l = beam.Length;
             double r = beam.Height;
             double mTot = beam.A * beam.Rho * beam.Length;
