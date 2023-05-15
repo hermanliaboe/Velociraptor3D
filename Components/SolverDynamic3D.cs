@@ -218,19 +218,19 @@ namespace FEM3D.Components
             for (int n = 0; n < d.ColumnCount - 1; n++)
             {
                 // predictor step
-                var dPred = d.SubMatrix(0, dof, n, 1) + dt * v.SubMatrix(0, dof, n, 1) + 0.5 * (1 - 2 * beta) * Math.Pow(dt, 2) * a.SubMatrix(0, dof, n, 1);
-                var vPred = v.SubMatrix(0, dof, n, 1) + (1 - gamma) * dt * a.SubMatrix(0, dof, n, 1);
+                var dPred = d.SubMatrix(0, dof, n, 1) + dt * v.SubMatrix(0, dof, n, 1) + 0.5 * (1.0 - 2.0 * beta) * Math.Pow(dt, 2.0) * a.SubMatrix(0, dof, n, 1);
+                var vPred = v.SubMatrix(0, dof, n, 1) + (1.0 - gamma) * dt * a.SubMatrix(0, dof, n, 1);
 
                 // solution step
                 // if force is a function of time, set F_n+1 to updated value (not f0)
                 //fTime.SetSubMatrix(0,dof,n+1,1, fZeros);
                 var fPrime = fTime.SubMatrix(0, dof, n + 1, 1) - C.Multiply(vPred) - K.Multiply(dPred);
-                var mPrime = M + gamma * dt * C + beta * Math.Pow(dt, 2) * K;
+                var mPrime = M + gamma * dt * C + beta * Math.Pow(dt, 2.0) * K;
                 LA.Matrix<double> mPrimeInv = mPrime.Inverse();
                 a.SetSubMatrix(0, n + 1, mPrimeInv.Multiply(fPrime));
 
                 // connector step
-                d.SetSubMatrix(0, dof, n + 1, 1, dPred + beta * Math.Pow(dt, 2) * a.SubMatrix(0, dof, n + 1, 1));
+                d.SetSubMatrix(0, dof, n + 1, 1, dPred + beta * Math.Pow(dt, 2.0) * a.SubMatrix(0, dof, n + 1, 1));
                 v.SetSubMatrix(0, dof, n + 1, 1, vPred + gamma * dt * a.SubMatrix(0, dof, n + 1, 1));
             }
             velocities = v;
