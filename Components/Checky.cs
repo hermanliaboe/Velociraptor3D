@@ -127,7 +127,7 @@ namespace FEM3D.Components
                 {
                     double number1;
                     if (double.TryParse(tKs[j].Trim(), out number1)){
-                        dispK.Add(number1*1000); }
+                        dispK.Add(Math.Round(number1*1000, 8)); }
  
                 }
                 for (int k = 0; k < 3; k++)
@@ -135,7 +135,7 @@ namespace FEM3D.Components
                     double number;
                     if (double.TryParse(rKs[k].Trim(), out number))
                     {
-                        dispK.Add(number);
+                        dispK.Add(Math.Round(number, 8));
                     }
                 }
             }
@@ -160,12 +160,12 @@ namespace FEM3D.Components
             // compare the displacements six by six
             for (int i = 0; i < dispK.Count; i += 6)
             {
-                eTx0 += errorFunc(dispV[i + 0, 0], dispK[i + 0]);
-                eTy0 += errorFunc(dispV[i + 1, 0], dispK[i + 1]);
-                eTz0 += errorFunc(dispV[i + 2, 0], dispK[i + 2]);
-                eRx0 += errorFunc(dispV[i + 3, 0], dispK[i + 3]);
-                eRy0 += errorFunc(dispV[i + 4, 0], dispK[i + 4]);
-                eRz0 += errorFunc(dispV[i + 5, 0], dispK[i + 5]);
+                eTx0 += errorFunc(Math.Round(dispV[i + 0, 0], 3), Math.Round(dispK[i + 0], 3));
+                eTy0 += errorFunc(Math.Round(dispV[i + 1, 0], 3), Math.Round(dispK[i + 1], 3));
+                eTz0 += errorFunc(Math.Round(dispV[i + 2, 0], 3), Math.Round(dispK[i + 2], 3));
+                eRx0 += errorFunc(Math.Round(dispV[i + 3, 0], 3), Math.Round(dispK[i + 3], 3));
+                eRy0 += errorFunc(Math.Round(dispV[i + 4, 0], 3), Math.Round(dispK[i + 4], 3));
+                eRz0 += errorFunc(Math.Round(dispV[i + 5, 0], 3), Math.Round(dispK[i + 5], 3));
 
                 eTx.Add(errorFunc(dispV[i + 0, 0], dispK[i + 0]));
                 eTy.Add(errorFunc(dispV[i + 1, 0], dispK[i + 1]));
@@ -262,25 +262,25 @@ namespace FEM3D.Components
             avgForceErrors.Add(eMz / c);
 
             //making disp error
-            List<double> dBeam = new List<double>();
+            List<double> dispErrorsBeam = new List<double>();
             List<double> dVelo = new List<double>();
             List<double> dKara = new List<double>();
 
             int sn = beams[bN].StartNode.GlobalID;
             int en = beams[bN].EndNode.GlobalID;
 
-            dBeam.Add(errorFunc(dispV[6 * sn + 0, 0], dispK[6 * sn + 0]));
-            dBeam.Add(errorFunc(dispV[6 * sn + 1, 0], dispK[6 * sn + 1]));
-            dBeam.Add(errorFunc(dispV[6 * sn + 2, 0], dispK[6 * sn + 2]));
-            dBeam.Add(errorFunc(dispV[6 * sn + 3, 0], dispK[6 * sn + 3]));
-            dBeam.Add(errorFunc(dispV[6 * sn + 4, 0], dispK[6 * sn + 4]));
-            dBeam.Add(errorFunc(dispV[6 * sn + 5, 0], dispK[6 * sn + 5]));
-            dBeam.Add(errorFunc(dispV[6 * en + 0, 0], dispK[6 * en + 0]));
-            dBeam.Add(errorFunc(dispV[6 * en + 1, 0], dispK[6 * en + 1]));
-            dBeam.Add(errorFunc(dispV[6 * en + 2, 0], dispK[6 * en + 2]));
-            dBeam.Add(errorFunc(dispV[6 * en + 3, 0], dispK[6 * en + 3]));
-            dBeam.Add(errorFunc(dispV[6 * en + 4, 0], dispK[6 * en + 4]));
-            dBeam.Add(errorFunc(dispV[6 * en + 5, 0], dispK[6 * en + 5]));
+            dispErrorsBeam.Add(errorFunc(Math.Round(dispV[6 * sn + 0, 0], 3), Math.Round(dispK[6 * sn + 0], 3)));
+            dispErrorsBeam.Add(errorFunc(Math.Round(dispV[6 * sn + 1, 0], 3), Math.Round(dispK[6 * sn + 1], 3)));
+            dispErrorsBeam.Add(errorFunc(Math.Round(dispV[6 * sn + 2, 0], 3), Math.Round(dispK[6 * sn + 2], 3)));
+            dispErrorsBeam.Add(errorFunc(Math.Round(dispV[6 * sn + 3, 0], 3), Math.Round(dispK[6 * sn + 3], 3)));
+            dispErrorsBeam.Add(errorFunc(Math.Round(dispV[6 * sn + 4, 0], 3), Math.Round(dispK[6 * sn + 4], 3)));
+            dispErrorsBeam.Add(errorFunc(Math.Round(dispV[6 * sn + 5, 0], 3), Math.Round(dispK[6 * sn + 5], 3)));
+            dispErrorsBeam.Add(errorFunc(Math.Round(dispV[6 * en + 0, 0], 3), Math.Round(dispK[6 * en + 0], 3)));
+            dispErrorsBeam.Add(errorFunc(Math.Round(dispV[6 * en + 1, 0], 3), Math.Round(dispK[6 * en + 1], 3)));
+            dispErrorsBeam.Add(errorFunc(Math.Round(dispV[6 * en + 2, 0], 3), Math.Round(dispK[6 * en + 2], 3)));
+            dispErrorsBeam.Add(errorFunc(Math.Round(dispV[6 * en + 3, 0], 3), Math.Round(dispK[6 * en + 3], 3)));
+            dispErrorsBeam.Add(errorFunc(Math.Round(dispV[6 * en + 4, 0], 3), Math.Round(dispK[6 * en + 4], 3)));
+            dispErrorsBeam.Add(errorFunc(Math.Round(dispV[6 * en + 5, 0], 3), Math.Round(dispK[6 * en + 5], 3)));
 
             dVelo.Add(dispV[6 * sn + 0, 0]);
             dVelo.Add(dispV[6 * sn + 1, 0]);
@@ -309,9 +309,9 @@ namespace FEM3D.Components
             dKara.Add(dispK[6 * en + 5]);
 
             List<string> combinedListD = new List<string>();
-            for (int i = 0; i < dBeam.Count; i++)
+            for (int i = 0; i < dispErrorsBeam.Count; i++)
             {
-                string element = Math.Round(dBeam[i], 3).ToString() + " ->   " + Math.Round(dVelo[i], 8).ToString() + "   :   " + Math.Round(dKara[i], 8).ToString();
+                string element = Math.Round(dispErrorsBeam[i], 3).ToString() + " ->   " + Math.Round(dVelo[i], 6).ToString() + "   :   " + Math.Round(dKara[i], 6).ToString();
                 combinedListD.Add(element);
             }
 
@@ -322,18 +322,18 @@ namespace FEM3D.Components
             List<double> fKara = new List<double>();
 
          
-            fBeam.Add(errorFunc(bfV[0, bN], nK[bN * 2] * 1000));
-            fBeam.Add(errorFunc(bfV[1, bN], vyK[bN * 2] * 1000));
-            fBeam.Add(errorFunc(bfV[2, bN], vzK[bN * 2] * 1000));
-            fBeam.Add(errorFunc(bfV[3, bN], mtK[bN * 2] * 1000000));
-            fBeam.Add(errorFunc(bfV[4, bN], myK[bN * 2] * 1000000));
-            fBeam.Add(errorFunc(bfV[5, bN], mzK[bN * 2] * 1000000));
-            fBeam.Add(errorFunc(bfV[6 + 0, bN], nK[bN * 2 + 1] * 1000));
-            fBeam.Add(errorFunc(bfV[6 + 1, bN], vyK[bN * 2 + 1] * 1000));
-            fBeam.Add(errorFunc(bfV[6 + 2, bN], vzK[bN * 2 + 1] * 1000));
-            fBeam.Add(errorFunc(bfV[6 + 3, bN], mtK[bN * 2 + 1] * 1000000));
-            fBeam.Add(errorFunc(bfV[6 + 4, bN], myK[bN * 2 + 1] * 1000000));
-            fBeam.Add(errorFunc(bfV[6 + 5, bN], mzK[bN * 2 + 1] * 1000000));
+            fBeam.Add(errorFunc(Math.Round(bfV[0, bN], 6), Math.Round(nK[bN * 2] * 1000, 6)));
+            fBeam.Add(errorFunc(Math.Round(bfV[1, bN], 6), Math.Round(vyK[bN * 2] * 1000, 6)));
+            fBeam.Add(errorFunc(Math.Round(bfV[2, bN], 6), Math.Round(vzK[bN * 2] * 1000, 6)));
+            fBeam.Add(errorFunc(Math.Round(bfV[3, bN], 6), Math.Round(mtK[bN * 2] * 1000000, 6)));
+            fBeam.Add(errorFunc(Math.Round(bfV[4, bN], 6), Math.Round(myK[bN * 2] * 1000000, 6)));
+            fBeam.Add(errorFunc(Math.Round(bfV[5, bN], 6), Math.Round(mzK[bN * 2] * 1000000, 6)));
+            fBeam.Add(errorFunc(Math.Round(bfV[6 + 0, bN], 6), Math.Round(nK[bN * 2 + 1] * 1000, 6)));
+            fBeam.Add(errorFunc(Math.Round(bfV[6 + 1, bN], 6), Math.Round(vyK[bN * 2 + 1] * 1000, 6)));
+            fBeam.Add(errorFunc(Math.Round(bfV[6 + 2, bN], 6), Math.Round(vzK[bN * 2 + 1] * 1000, 6)));
+            fBeam.Add(errorFunc(Math.Round(bfV[6 + 3, bN], 6), Math.Round(mtK[bN * 2 + 1] * 1000000, 6)));
+            fBeam.Add(errorFunc(Math.Round(bfV[6 + 4, bN], 6), Math.Round(myK[bN * 2 + 1] * 1000000, 6)));
+            fBeam.Add(errorFunc(Math.Round(bfV[6 + 5, bN], 6), Math.Round(mzK[bN * 2 + 1] * 1000000, 6)));
 
             //Making fVelo
             fVelo.Add(bfV[0, bN]);
@@ -350,18 +350,18 @@ namespace FEM3D.Components
             fVelo.Add(bfV[6 + 5, bN]);
 
             //Making fkara
-            fKara.Add(nK[bN * 2] * 1000);
-            fKara.Add(vyK[bN * 2] * 1000);
-            fKara.Add(vzK[bN * 2] * 1000);
-            fKara.Add(mtK[bN * 2] * 1000000);
-            fKara.Add(myK[bN * 2] * 1000000);
-            fKara.Add(mzK[bN * 2] * 1000000);
-            fKara.Add(nK[bN * 2 + 1] * 1000);
-            fKara.Add(vyK[bN * 2 + 1] * 1000);
-            fKara.Add(vzK[bN * 2 + 1] * 1000);
-            fKara.Add(mtK[bN * 2 + 1] * 1000000);
-            fKara.Add(myK[bN * 2 + 1] * 1000000);
-            fKara.Add(mzK[bN * 2 + 1] * 1000000);
+            fKara.Add(Math.Round(nK[bN * 2] * 1000.0, 6));
+            fKara.Add(Math.Round(vyK[bN * 2] * 1000.0, 6));
+            fKara.Add(Math.Round(vzK[bN * 2] * 1000.0, 6));
+            fKara.Add(Math.Round(mtK[bN * 2] * 1000000.0, 6));
+            fKara.Add(Math.Round(myK[bN * 2] * 1000000.0, 6));
+            fKara.Add(Math.Round(mzK[bN * 2] * 1000000.0, 6));
+            fKara.Add(Math.Round(nK[bN * 2 + 1] * 1000.0, 6));
+            fKara.Add(Math.Round(vyK[bN * 2 + 1] * 1000.0, 6));
+            fKara.Add(Math.Round(vzK[bN * 2 + 1] * 1000.0, 6));
+            fKara.Add(Math.Round(mtK[bN * 2 + 1] * 1000000.0, 6));
+            fKara.Add(Math.Round(myK[bN * 2 + 1] * 1000000.0, 6));
+            fKara.Add(Math.Round(mzK[bN * 2 + 1] * 1000000.0, 6));
 
 
 
@@ -393,17 +393,14 @@ namespace FEM3D.Components
 
         public double errorFunc(double V, double K)
         {
-            double error = 0;
-            if (Math.Abs(V) < 1e-4 && Math.Abs(K) < 1e-4){
-                error = 0;
-            }
-            else
-            {
-                V += 0.00000001;
-                K += 0.00000001;
-                //double error = 0.0;
-                error = 100 * Math.Abs((Math.Abs(V) - Math.Abs(K)) / V);
-            }    
+            double error = 0.0;
+            
+            
+            V += 0.00000001;
+            K += 0.00000001;
+            //double error = 0.0;
+            error = Math.Round(100.0 * Math.Abs((Math.Abs(V) - Math.Abs(K)) / V), 3);
+               
             return error;
         }
 
