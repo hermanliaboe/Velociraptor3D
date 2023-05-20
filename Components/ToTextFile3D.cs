@@ -41,7 +41,7 @@ namespace FEM3D.Components
             pManager.AddGenericParameter("DispZ", "inpt", "", GH_ParamAccess.item);
             pManager.AddTextParameter("FilePath DispZ", "path dispZ", "", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Write?", "w", "", GH_ParamAccess.item);
-            pManager.AddPointParameter("Points", "pts", "",GH_ParamAccess.list);
+            pManager.AddGenericParameter("Nodes", "nds", "",GH_ParamAccess.list);
             pManager.AddTextParameter("FilePath Pts", "path pts", "", GH_ParamAccess.item);
         }
 
@@ -62,7 +62,7 @@ namespace FEM3D.Components
             LA.Double.DenseMatrix disp = new LA.Double.DenseMatrix(2);
             string filePathZ = "";
             bool write = false;
-            List<Point3d> pts = new List<Point3d>();
+            List<Node> nodes = new List<Node>();
             string filePathP = "";
             bool key = false;
 
@@ -70,7 +70,7 @@ namespace FEM3D.Components
             DA.GetData(1, ref disp);
             DA.GetData(2, ref filePathZ);
             DA.GetData(3, ref write);
-            DA.GetDataList(4, pts);
+            DA.GetDataList(4, nodes);
             DA.GetData(5, ref filePathP);
 
             if (write)
@@ -101,19 +101,32 @@ namespace FEM3D.Components
                     // Open the file for appending if it exists, or create a new file if it doesn't exist
                     using (StreamWriter writer = new StreamWriter(filePathP, key))
                     {
-                        foreach (Point3d p in pts)
+                        foreach (Node n in nodes)
                         {
-                            writer.Write(p.X + "   "); 
+                            writer.Write(n.Point.X + "   "); 
                         }
                         writer.WriteLine();
-                        foreach (Point3d p in pts)
+                        foreach (Node n in nodes)
                         {
-                            writer.Write(p.Y + "   "); 
+                            writer.Write(n.Point.Y + "   "); 
                         }
                         writer.WriteLine();
-                        foreach (Point3d p in pts)
+                        foreach (Node n in nodes)
                         {
-                            writer.Write(p.Z + "   ");
+                            writer.Write(n.Point.Z + "   ");
+                        }
+                        writer.WriteLine();
+                        foreach (Node n in nodes)
+                        {
+                            if (n.ZBC)
+                            {
+                                writer.Write(1 + "   ");
+                            }
+                            else
+                            {
+                                writer.Write(0 + "   ");
+                            }
+                            
                         }
                         writer.WriteLine();
                         writer.WriteLine();
