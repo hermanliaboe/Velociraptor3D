@@ -34,18 +34,17 @@ namespace FEM3D.Components.Deconstructors
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("startNode", "sNode", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("endNode", "eNode", "", GH_ParamAccess.item);
-            pManager.AddLineParameter("line", "l", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("StartNode", "sNode", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("EndNode", "eNode", "", GH_ParamAccess.item);
+            pManager.AddLineParameter("Line", "l", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("BeamID", "bID", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("height", "h", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("width", "w", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Height", "h", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Width", "w", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("YoungsMod", "E", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("Length", "L", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("Material density", "rho", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("ShearMod", "J", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("Forces", "F", "", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Local Displacements", "", "List of element displacements in local coordinate system.", GH_ParamAccess.list);
             pManager.AddGenericParameter("Kel", "", "", GH_ParamAccess.item);
             pManager.AddVectorParameter("xl", "", "", GH_ParamAccess.item);
             pManager.AddVectorParameter("yl", "", "", GH_ParamAccess.item);
@@ -55,7 +54,8 @@ namespace FEM3D.Components.Deconstructors
             pManager.AddNumberParameter("J", "", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("A", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("T", "", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("global displacements", "", "", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Local Displacements", "", "List of element displacements in local coordinate system.", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Global displacements", "", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -80,16 +80,16 @@ namespace FEM3D.Components.Deconstructors
             DA.SetData(8, beam.Rho);
             DA.SetData(9, beam.ShearMod);
             DA.SetDataList(10, beam.ForceList);
-            DA.SetDataList(11, beam.LocalDisp);
-            DA.SetData(12, rhinoMatrixKel);
-            DA.SetData(13, beam.xl);
-            DA.SetData(14, beam.yl);
-            DA.SetData(15, beam.zl);
-            DA.SetData(16, Math.Round(beam.Iy, 12));
-            DA.SetData(17, beam.Iz);
-            DA.SetData(18, beam.J);
-            DA.SetData(19, beam.A);
-            DA.SetData(20, rhinoMatrixT);
+            DA.SetData(11, rhinoMatrixKel);
+            DA.SetData(12, beam.xl);
+            DA.SetData(13, beam.yl);
+            DA.SetData(14, beam.zl);
+            DA.SetData(15, Math.Round(beam.Iy, 12));
+            DA.SetData(16, beam.Iz);
+            DA.SetData(17, beam.J);
+            DA.SetData(18, beam.A);
+            DA.SetData(19, rhinoMatrixT);
+            DA.SetDataList(20, beam.LocalDisp);
             DA.SetDataList(21, beam.GlobalDisp);
         }
 

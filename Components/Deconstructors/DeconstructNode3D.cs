@@ -33,8 +33,8 @@ namespace FEM3D.Components.Deconstructors
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddPointParameter("Point", "", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("localID", "", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("globalID", "", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("LocalID", "", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("GlobalID", "", "", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Tx", "", "", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Ty", "", "", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Tz", "", "", GH_ParamAccess.item);

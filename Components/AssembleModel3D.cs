@@ -30,9 +30,10 @@ namespace FEM3D.Components
         {
             //trying some stuff here
             pManager.AddGenericParameter("Beams", "beams", "Input for all beams", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Nodes", "nodes", "Input for all nodes", GH_ParamAccess.list);
             pManager.AddGenericParameter("Supports", "sups", "Input for all supports", GH_ParamAccess.list);
             pManager.AddGenericParameter("Loads", "loads", "Input for all loads", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Nodes", "nodes", "Input for all nodes", GH_ParamAccess.list);
+
 
         }
 
@@ -57,9 +58,10 @@ namespace FEM3D.Components
 
 
             DA.GetDataList(0, beams);
-            DA.GetDataList(1, supports);
-            DA.GetDataList(2, loads);
-            DA.GetDataList(3, nodes);
+            DA.GetDataList(1, nodes);
+            DA.GetDataList(2, supports);
+            DA.GetDataList(3, loads);
+
 
 
             //Check for where the support is located, and if found the correct beam gets new BC

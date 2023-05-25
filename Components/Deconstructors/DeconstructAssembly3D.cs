@@ -32,8 +32,8 @@ namespace FEM3D.Components.Deconstructors
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("beams", "sNode", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("supports", "sup", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Beams", "sNode", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Supports", "sup", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("Loads", "loads", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("Nodes", "nodes", "", GH_ParamAccess.list);
         }
