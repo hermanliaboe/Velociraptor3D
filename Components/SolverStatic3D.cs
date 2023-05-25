@@ -48,16 +48,16 @@ namespace FEM3D.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("global K", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("global Ksup", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("force Vec", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("displacements Vec", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("displacements List", "", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("displacements Node z", "", "", GH_ParamAccess.list);
-            pManager.AddCurveParameter("new lines", "lines", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Disp matrix", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Global K", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Global Ksup", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Force Vec", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Displacements Vec", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Displacements List", "", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Displacements Node z", "", "", GH_ParamAccess.list);
+            pManager.AddCurveParameter("New Lines", "lines", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Disp Matrix", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Beam Forces", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Forces list, K*u", "", "", GH_ParamAccess.list );
+            pManager.AddGenericParameter("Forces List, K*u", "", "", GH_ParamAccess.list );
         }
 
         /// <summary>

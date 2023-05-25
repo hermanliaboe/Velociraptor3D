@@ -30,8 +30,8 @@ namespace FEM3D.Components
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("height", "h", "", GH_ParamAccess.item, 1);
-            pManager.AddNumberParameter("width", "w", "", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("Height", "h", "", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("Width", "w", "", GH_ParamAccess.item, 1);
             pManager.AddNumberParameter("YoungsModulus", "E", "", GH_ParamAccess.item, 210000);
             pManager.AddNumberParameter("Density", "rho", "", GH_ParamAccess.item, 0.00000000785);
             pManager.AddNumberParameter("ShearModulus", "ShearModulus", "", GH_ParamAccess.item, 81000.0);
